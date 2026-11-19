@@ -273,6 +273,24 @@ body.ar-xl :is(.portion .ar,.d-more .ar,.s-main .ar,p.ayah,.passage p,.me-sample
 html,body{touch-action:pan-x pan-y}
 button,a,label,summary,.tab,.chip{touch-action:manipulation}
 input,select,textarea{font-size:16px!important}
+/* Woche: an opened day gets a big heading and its surahs sit in their own card, one per row */
+.day.open{box-shadow:inset 4px 0 0 var(--accent)}
+.day.open>.d-what{font-weight:600}
+.d-open{grid-column:1/-1;margin:6px 0 2px;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:14px 14px 6px;cursor:default}
+.d-open-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.d-open-day{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-.01em;line-height:1.1}
+.d-open-sum{color:var(--muted);font-size:14px;font-weight:600}
+.d-open-tip{margin:6px 0 0;color:var(--muted);font-size:13px}
+.d-open .d-more{margin:8px 0 0;border-top:0}
+.d-open .d-more li{align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.d-open .d-more li:last-child{border-bottom:0}
+.d-open .s-t{font-weight:600;font-size:15px}
+.d-open .d-more small{font-size:12px}
+.d-open .tick.sm{width:26px;height:26px;font-size:12px;margin-top:1px}
+.d-open .d-more .ar{font-size:17px;padding-top:1px}
+.d-open .gr{font-size:11px;padding:1px 7px}
+.d-open .grades{gap:3px;flex-wrap:nowrap}
+.d-open .d-more .grow{min-width:0}
 </style>
 </head>
 <body>
@@ -1230,14 +1248,18 @@ function renderWeek(wp){
       what=describe(p.atoms).map(function(x){return x.title;}).join(", ")+(d<t&&!full&&state.days[d]?'<span class="tag open">Rest verschoben</span>':"")+
         '<small class="num">'+(d<=t?fmt0(p.donePages)+" von "+pagesWord(p.pages)+" gemacht":pagesWord(p.pages))+'</small>';
       segs+='<div class="seg'+(full?" done":p.donePages>1e-6?" part":"")+(d===t?" now":"")+'" style="flex-grow:'+p.pages.toFixed(3)+'">'+DAYS[d]+'</div>';
-      if(isOpen) more='<ul class="d-more">'+describe(p.atoms,true).map(function(x){
+      var items=describe(p.atoms,true);
+      if(isOpen) more='<div class="d-open" data-act="noop"><div class="d-open-h"><span class="d-open-day">'+DAYS_LONG[d]+'</span>'+
+        '<span class="d-open-sum num">'+(items.length===1?"1 Sure":items.length+" Suren")+' · '+pagesWord(p.pages)+'</span></div>'+
+        (canTick?'<p class="d-open-tip">Tippe auf den Kreis, wenn du eine Sure wiederholt hast.</p>':'')+
+        '<ul class="d-more">'+items.map(function(x){
         var st=itemState(x);
         return '<li data-act="'+(canTick?"item":"noop")+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'">'+
           (canTick?'<button class="tick sm'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>':'')+
-          '<span class="grow">'+x.title+'<small class="num">'+x.sub+'</small>'+(canTick?gradeRow(x,d):'')+'</span><span class="ar" lang="ar">'+x.ar+'</span></li>';
-      }).join("")+'</ul>';
+          '<span class="grow"><span class="s-t">'+x.title+'</span><small class="num">'+x.sub+'</small>'+(canTick?gradeRow(x,d):'')+'</span><span class="ar" lang="ar">'+x.ar+'</span></li>';
+      }).join("")+'</ul></div>';
     }else what=state.days[d]?(d<t?"Nichts eingeplant":"Nichts mehr offen"):"Frei";
-    rows+='<li class="day'+(d===t?" now":"")+(p?" can-open":" off")+'"'+(p?' data-act="openday" data-d="'+d+'"':'')+'><div class="d-name">'+DAYS[d]+'<span class="d-date num">'+date+'</span></div>'+
+    rows+='<li class="day'+(d===t?" now":"")+(isOpen?" open":"")+(p?" can-open":" off")+'"'+(p?' data-act="openday" data-d="'+d+'"':'')+'><div class="d-name">'+DAYS[d]+'<span class="d-date num">'+date+'</span></div>'+
       (p?'<button class="d-what" type="button" aria-expanded="'+isOpen+'">'+what+'<small class="d-hint">'+(isOpen?"Liste schließen":canTick?"Einzelne Suren abhaken":"Suren anzeigen")+'</small></button>':'<div class="d-what">'+what+'</div>')+
       (canTick?'<button class="tick" type="button" data-act="dayall" data-d="'+d+'" aria-pressed="'+full+'" aria-label="'+DAYS_LONG[d]+' ganz erledigt">✓</button>':'<span></span>')+more+'</li>';
   }
@@ -1444,7 +1466,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
   ["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,stop,{passive:false});});
   document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1) e.preventDefault();},{passive:false});
 })();
-var APP_VERSION=8;
+var APP_VERSION=9;
 function checkVersion(){
   if(location.protocol==="file:"||!navigator.onLine) return;
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
