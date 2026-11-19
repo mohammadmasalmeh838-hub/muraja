@@ -234,6 +234,8 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
     <span class="date" id="date"></span>
   </header>
 
+  <section class="learn" id="acct" hidden aria-live="polite"></section>
+
   <section class="today" id="today" aria-live="polite"></section>
 
   <section class="learn" id="hifz" aria-live="polite"></section>
@@ -314,12 +316,13 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
   </details>
 
   <footer class="foot">
-    <p id="sync">Dein Plan wird auf diesem Gerät gespeichert. Mit „Daten übertragen“ unter „Plan ändern“ nimmst du ihn auf ein anderes Gerät mit.</p>
+    <p id="sync">Dein Plan wird auf diesem Gerät gespeichert.</p>
     <p>Der Korantext wird nicht von der Seite selbst geschrieben. Er kommt aus dem veröffentlichten Datensatz quran-json 3.1.2 oder aus deiner Tanzil-Datei.</p>
     <p>Seitenzahlen nach dem Medina-Mushaf mit 604 Seiten. Wo mehrere kurze Suren auf einer Seite stehen, sind die Längen geschätzt.</p>
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
 <script type="module">
 window.__importJson=function(u){return import(u,{with:{type:"json"}}).then(function(m){return m.default;});};
 </script>
@@ -546,21 +549,90 @@ function rollWeek(){if(state.week!==weekId()){state.week=weekId();state.done={};
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 try{var raw=localStorage.getItem(KEY);if(raw) adopt(JSON.parse(raw));}catch(e){}
 
-/* ---- account sync (optional; the page works without it) ---- */
+/* ---- sync across devices through Supabase (optional; the app works offline without it) ---- */
+var SB_URL="https://deefhihuesferlmpwayn.supabase.co",SB_KEY="sb_publishable_5dLqf2s1flROOwmba6q5aA_aeKd9SjU";
+var sb=null,sbUser=null,pending=false;
 var ref=null,writing=false,dirty=false,timer=null;
 function setSync(mode){
-  $("sync").textContent=mode==="account"
-    ?"Dein Plan ist in deinem Konto gespeichert und erscheint auch auf deinen anderen Geräten."
-    :"Dein Plan wird nur in diesem Browser gespeichert.";
+  var el=$("sync");
+  if(mode==="account"&&sbUser){
+    el.innerHTML='Angemeldet als <strong>'+String(sbUser.email||"").replace(/[<>&"]/g,"")+'</strong>. Dein Plan ist auf allen Geräten gleich, auf denen du angemeldet bist. <button class="linkbtn" type="button" data-act="logout">Abmelden</button>';
+  }else if(sb) el.innerHTML='Dein Plan wird nur auf diesem Gerät gespeichert. <button class="linkbtn" type="button" data-act="acct-show">Anmelden, damit er auf allen Geräten gleich ist</button>';
+  else el.textContent="Dein Plan wird auf diesem Gerät gespeichert. Für den Abgleich mit anderen Geräten braucht die App einmal Internet.";
+  renderAcct();
 }
-function scheduleRemote(){if(!ref) return;clearTimeout(timer);timer=setTimeout(flush,900);}
+function scheduleRemote(){if(!ref){if(sbUser) pending=true;return;}clearTimeout(timer);timer=setTimeout(function(){timer=null;flush();},900);}
 function flush(){
   if(!ref) return;
   if(writing){dirty=true;return;}
-  writing=true;
-  ref.set({json:JSON.stringify(serialize()),t:state.t}).catch(function(e){
-    if(e&&e.code!=="unavailable"){ref=null;setSync("local");}
-  }).then(function(){writing=false;if(dirty){dirty=false;flush();}});
+  writing=true;pending=false;
+  ref.set({json:JSON.stringify(serialize()),t:state.t}).catch(function(){pending=true;})
+    .then(function(){writing=false;if(dirty){dirty=false;flush();}});
+}
+// Row of the signed-in user in table muraja_state, shaped like the doc API pull() expects.
+function sbRef(uid){
+  return {
+    get:function(){return sb.from("muraja_state").select("json,t").eq("user_id",uid).maybeSingle().then(function(r){
+      if(r.error) throw r.error;
+      return {exists:!!r.data,data:function(){return r.data;}};
+    });},
+    set:function(v){return sb.from("muraja_state").upsert({user_id:uid,json:v.json,t:v.t,updated_at:new Date().toISOString()}).then(function(r){if(r.error) throw r.error;});}
+  };
+}
+function useSession(session){
+  sbUser=session&&session.user?session.user:null;
+  if(!sbUser){ref=null;setSync("local");return;}
+  ref=sbRef(sbUser.id);setSync("account");
+  pull().then(function(){if(pending) scheduleRemote();}).catch(function(){});
+}
+var acct={mode:"login",msg:"",busy:false,later:false};
+try{acct.later=localStorage.getItem("muraja-acct-later")==="1";}catch(e){}
+function renderAcct(){
+  var el=$("acct");if(!el) return;
+  if(!sb||sbUser||acct.later){el.hidden=true;return;}
+  el.hidden=false;
+  var reg=acct.mode==="register";
+  el.innerHTML='<div class="eyebrow">Auf allen Geräten gleich</div><h2>'+(reg?"Konto anlegen":"Anmelden")+'</h2>'+
+    '<p>'+(reg?"Nur einmal nötig. Danach meldest du dich auf jedem Gerät einmal mit derselben E-Mail und demselben Passwort an.":"Melde dich auf jedem Gerät einmal an. Danach sind Haken, Bewertungen und Lernziel überall automatisch gleich.")+'</p>'+
+    '<form id="acct-form" class="fields" autocomplete="on">'+
+    '<label for="a-mail">E-Mail<input id="a-mail" name="email" type="email" autocomplete="username email" required></label>'+
+    '<label for="a-pw">Passwort'+(reg?" (mind. 6 Zeichen)":"")+'<input id="a-pw" name="password" type="password" minlength="6" autocomplete="'+(reg?"new-password":"current-password")+'" required></label>'+
+    '<div class="h-row" style="grid-column:1/-1"><button class="btn-acc" type="submit"'+(acct.busy?" disabled":"")+'>'+(acct.busy?"Moment …":reg?"Konto anlegen":"Anmelden")+'</button>'+
+    '<button class="linkbtn" type="button" data-act="acct-mode">'+(reg?"Ich habe schon ein Konto":"Noch kein Konto? Hier anlegen")+'</button></div></form>'+
+    (acct.msg?'<p class="hint">'+acct.msg+'</p>':'')+
+    '<div><button class="linkbtn" type="button" data-act="acct-later">Später</button></div>';
+}
+function authError(e){
+  var m=String(e&&e.message||"");
+  if(/Invalid login/i.test(m)) return "E-Mail oder Passwort stimmt nicht.";
+  if(/already registered|already exists/i.test(m)) return "Für diese E-Mail gibt es schon ein Konto. Melde dich einfach an.";
+  if(/at least 6|Password should/i.test(m)) return "Das Passwort muss mindestens 6 Zeichen haben.";
+  if(/rate limit|too many/i.test(m)) return "Zu viele Versuche. Warte kurz und versuch es noch einmal.";
+  if(/fetch|network/i.test(m)) return "Keine Verbindung zum Internet.";
+  return "Das hat nicht geklappt: "+m;
+}
+document.addEventListener("submit",function(e){
+  if(e.target.id!=="acct-form") return;
+  e.preventDefault();
+  if(!sb||acct.busy) return;
+  var mail=$("a-mail").value.trim(),pw=$("a-pw").value,reg=acct.mode==="register";
+  acct.busy=true;acct.msg="";renderAcct();
+  (reg?sb.auth.signUp({email:mail,password:pw}):sb.auth.signInWithPassword({email:mail,password:pw})).then(function(r){
+    acct.busy=false;
+    if(r.error){acct.msg=authError(r.error);renderAcct();return;}
+    if(!r.data.session){acct.msg="Konto angelegt. Melde dich jetzt an.";acct.mode="login";renderAcct();return;}
+    if(reg) pending=true;
+  }).catch(function(err){acct.busy=false;acct.msg=authError(err);renderAcct();});
+});
+function initSupabase(){
+  if(!window.supabase||typeof window.supabase.createClient!=="function"){setSync("local");return;}
+  sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  sb.auth.onAuthStateChange(function(ev,session){
+    if(ev==="TOKEN_REFRESHED"&&sbUser) return;
+    setTimeout(function(){useSession(session);},0);
+  });
+  setInterval(function(){if(ref&&document.visibilityState==="visible") pull().catch(function(){});},20000);
+  window.addEventListener("online",function(){if(ref){pull().catch(function(){});if(pending) scheduleRemote();}});
 }
 function pull(){
   if(!ref||writing||timer&&dirty) return Promise.resolve();
@@ -1043,6 +1115,10 @@ document.addEventListener("click",function(e){
     if(obj&&adopt(obj)){state.t=Date.now();state.example=false;saveLocal();scheduleRemote();render();$("bk").value="";$("bk-msg").textContent="Übernommen. Dein Plan auf diesem Gerät ist jetzt wie auf dem anderen.";}
     else $("bk-msg").textContent="Mit diesem Code kann ich nichts anfangen. Kopiere ihn noch einmal vollständig.";
   }
+  else if(act==="acct-mode"){acct.mode=acct.mode==="register"?"login":"register";acct.msg="";renderAcct();}
+  else if(act==="acct-show"){acct.later=false;try{localStorage.removeItem("muraja-acct-later");}catch(err){}renderAcct();window.scrollTo({top:0,behavior:"smooth"});}
+  else if(act==="acct-later"){acct.later=true;try{localStorage.setItem("muraja-acct-later","1");}catch(err){}renderAcct();}
+  else if(act==="logout"){if(sb) sb.auth.signOut();acct.later=false;try{localStorage.removeItem("muraja-acct-later");}catch(err){}}
   else if(act==="resetweek"){state.rev={};commit();}
   else if(act==="day"){state.days[+b.dataset.d]=!state.days[+b.dataset.d];commit();}
   else if(act==="clear"){sel.fill(0);commit();}
@@ -1086,6 +1162,7 @@ try{var saved=localStorage.getItem("muraja-text");if(saved) parseTanzil(saved);}
 
 render();
 initSync();
+initSupabase();
 if("serviceWorker" in navigator&&location.protocol!=="file:") navigator.serviceWorker.register("sw.js").catch(function(){});
 fetch("quran.txt").then(function(r){return r.ok?r.text():"";}).then(function(t){if(t&&parseTanzil(t)) renderQuiz();}).catch(function(){});
 </script>
