@@ -393,6 +393,38 @@ section.today{gap:12px;padding:20px}
 .tab[aria-current="page"] .tl{font-weight:700}
 .tab[aria-current="page"] svg{stroke-width:2.1}
 @media (prefers-reduced-motion:reduce){.tab-ind,.ti{transition:none}}
+/* Lernen: per-day bars */
+.hz-top h2{margin:0}
+.hz-top p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.hz-days{display:flex;gap:4px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.hz-days::-webkit-scrollbar{display:none}
+.hzd{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:12px;border:1px solid transparent;background:none;color:var(--ink)}
+.hzd[disabled]{cursor:default}
+.hzd.sel{border-color:var(--accent);background:var(--accent-soft)}
+.hzd.today .hzl{color:var(--accent);font-weight:700}
+.hzv{font-size:12px;font-weight:700;min-height:15px}
+.hzd.future .hzv{color:var(--muted);font-weight:500}
+.hzd.none .hzv{color:var(--muted)}
+.hzb{height:64px;width:18px;display:flex;align-items:flex-end}
+.hzb i{display:block;width:100%;border-radius:5px 5px 2px 2px}
+.hzb i.done{background:var(--accent)}
+.hzb i.plan{background:transparent;box-shadow:inset 0 0 0 1.5px var(--accent);opacity:.55}
+.hzl{font-size:11px;color:var(--muted);font-weight:600}
+.hzn{font-size:10px;color:var(--muted)}
+.hz-leg{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);margin:0}
+.hz-leg>span{display:inline-flex;align-items:center;gap:5px}
+.lg{display:inline-block;width:10px;height:10px;border-radius:3px}
+.lg.done{background:var(--accent)}.lg.plan{box-shadow:inset 0 0 0 1.5px var(--accent);opacity:.6}
+.hz-entry{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.hz-entry p{margin:0}
+.goalbox{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.goalbox summary{cursor:pointer;display:flex;flex-direction:column;gap:2px;font-family:var(--display);font-weight:700;font-size:17px;list-style:none}
+.goalbox summary::-webkit-details-marker{display:none}
+.goalbox summary::after{content:"Ändern ›";position:absolute;right:30px;font-family:var(--body);font-size:13px;color:var(--accent);font-weight:600;margin-top:2px}
+.goalbox[open] summary::after{content:"Schließen"}
+.goalbox{position:relative}
+.gb-sub{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.goalbox[open]{display:flex;flex-direction:column;gap:12px}
 </style>
 </head>
 <body>
@@ -443,16 +475,16 @@ section.today{gap:12px;padding:20px}
 
   <div class="view" data-tab="lernen">
   <section class="learn" id="hifz" aria-live="polite"></section>
-  <section class="sec" aria-labelledby="h-learn">
-    <div class="sec-head"><h2 id="h-learn">Was lernst du gerade neu?</h2></div>
-    <p class="lead">Eine Mushaf-Seite hat 15 Zeilen. Die Seite rechnet dein Ziel in Zeilen pro Tag um und passt die Menge an, wenn du mal mehr oder weniger schaffst.</p>
+  <details class="sec goalbox" id="goalbox">
+    <summary><span id="h-learn">Lernziel ändern</span><span class="gb-sub" id="goal-sub"></span></summary>
+    <p class="lead">Eine Mushaf-Seite hat 15 Zeilen. Wenn du die Sure wechselst, beginnt die Zählung neu.</p>
     <div class="fields">
       <label for="h-sura">Sure<select id="h-sura"></select></label>
       <label for="h-pages">Seiten<input id="h-pages" type="number" min="0.25" max="50" step="0.25" inputmode="decimal"></label>
       <label for="h-until">Fertig bis<input id="h-until" type="date"></label>
     </div>
     <div><button class="linkbtn" type="button" data-act="hifz-reset">Gelernte Zeilen auf 0 setzen</button></div>
-  </section>
+  </details>
   <section class="sec" aria-labelledby="h-calc">
     <div class="sec-head"><h2 id="h-calc">Zielrechner</h2></div>
     <p class="lead">Tippe ein Ziel und ein Datum ein. Die Seite rechnet aus, wie viel du pro Tag neu lernen musst, und zieht ab, was du schon kannst.</p>
@@ -685,15 +717,24 @@ function todayIdx(){return (new Date().getDay()+6)%7;}
 function monday(){var d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-todayIdx());return d;}
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function weekId(){return iso(monday());}
-function defaultHifz(){var d=monday();d.setDate(d.getDate()+6);return {s:59,pages:1.5,until:iso(d),learned:0,day:"",today:0};}
+function defaultHifz(){var d=monday();d.setDate(d.getDate()+6);return {s:59,pages:1.5,until:iso(d),learned:0,day:"",today:0,log:{}};}
+// Lines learned per day for the current goal: {"2026-11-17": 6, ...}; "_vorher" holds what was counted before days were stored.
+function hifzSum(log){var n=0;Object.keys(log||{}).forEach(function(k){n+=Math.max(0,+log[k]||0);});return n;}
+function normHifzLog(h){
+  var out={};
+  if(h&&h.log&&typeof h.log==="object") Object.keys(h.log).forEach(function(k){var v=+h.log[k];if(/^(\d{4}-\d\d-\d\d|_vorher)$/.test(k)&&v>=0&&v<1000) out[k]=Math.round(v);});
+  else if(h){var td=h.day&&+h.today>0?+h.today:0;if(td) out[h.day]=td;var rest=(+h.learned||0)-td;if(rest>0) out._vorher=rest;}
+  return out;
+}
+function syncHifzTotals(h){h.learned=hifzSum(h.log);var t=iso(new Date());h.day=h.log[t]!==undefined?t:"";h.today=h.log[t]||0;}
 // How many lines to learn today so the goal is reached by the deadline.
 function hifzCalc(){
-  var h=state.hifz,now=new Date();now.setHours(12,0,0,0);
-  var t=iso(now),total=Math.max(1,Math.ceil(h.pages*15)),learned=Math.min(Math.max(0,h.learned),total),rem=total-learned;
+  var h=state.hifz,now=new Date();now.setHours(12,0,0,0);h.log=h.log||{};
+  var t=iso(now),total=Math.max(1,Math.ceil(h.pages*15)),learned=Math.min(hifzSum(h.log),total),rem=total-learned;
   var end=new Date(h.until+"T12:00:00"),diff=isNaN(end)?0:Math.round((end-now)/864e5);
-  var days=Math.max(1,diff+1),logged=h.day===t?h.today:0;
+  var days=Math.max(1,diff+1),logged=h.log[t]||0,set=h.log[t]!==undefined;
   var target=Math.ceil((rem+logged)/days);
-  return {t:t,total:total,learned:learned,rem:rem,days:days,late:diff<0,logged:logged,set:h.day===t,target:target,todo:Math.max(0,Math.min(rem,target-logged)),end:end};
+  return {t:t,total:total,learned:learned,rem:rem,days:days,late:diff<0,logged:logged,set:set,target:target,todo:Math.max(0,Math.min(rem,target-logged)),end:end,now:now};
 }
 
 var state={days:[true,true,true,true,true,true,false],week:weekId(),done:{},example:false,t:0,hifz:null};
@@ -706,7 +747,7 @@ state.rev={};
 function defaultPrefs(){return {name:"",theme:"auto",ar:"m",start:"last"};}
 state.prefs=defaultPrefs();
 state.log=[];
-var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false,tab:"heute",rate:null,gsort:"mushaf",gtile:-1,wsel:null};
+var ui={hday:null,open:-1,filter:"",day:-1,q:null,hint:false,show:false,tab:"heute",rate:null,gsort:"mushaf",gtile:-1,wsel:null};
 setAll(atomsWhere(function(t){return t.surah>=60;}),1); // start: As-Saff (61) bis An-Nas (114)
 
 function revRuns(){
@@ -741,7 +782,8 @@ function adopt(o){
   var c=o.calc,dc=defaultCalc();
   state.calc=c&&typeof c==="object"?{goal:/^[js]\d+$|^x$/.test(c.goal)?c.goal:dc.goal,pages:c.pages>0?+c.pages:dc.pages,until:typeof c.until==="string"?c.until:dc.until,dpw:c.dpw>=1&&c.dpw<=7?c.dpw|0:dc.dpw}:dc;
   var h=o.hifz,dh=defaultHifz();
-  state.hifz=h&&typeof h==="object"?{s:h.s>=0&&h.s<NS?h.s|0:dh.s,pages:h.pages>0?+h.pages:dh.pages,until:typeof h.until==="string"?h.until:dh.until,learned:+h.learned||0,day:typeof h.day==="string"?h.day:"",today:+h.today||0}:dh;
+  state.hifz=h&&typeof h==="object"?{s:h.s>=0&&h.s<NS?h.s|0:dh.s,pages:h.pages>0?+h.pages:dh.pages,until:typeof h.until==="string"?h.until:dh.until,learned:+h.learned||0,day:typeof h.day==="string"?h.day:"",today:+h.today||0,log:normHifzLog(h)}:dh;
+  syncHifzTotals(state.hifz);
   var pr=o.prefs,dp=defaultPrefs();
   state.prefs=pr&&typeof pr==="object"?{name:typeof pr.name==="string"?pr.name.slice(0,30):"",theme:/^(auto|light|dark)$/.test(pr.theme)?pr.theme:dp.theme,ar:/^(m|l|xl)$/.test(pr.ar)?pr.ar:dp.ar,start:/^(last|heute|pruefen|lernen|stand)$/.test(pr.start)?pr.start:dp.start}:(state.prefs||dp);
   state.log=normLog(o.log);
@@ -818,6 +860,12 @@ function merge3(B,L,R){
   var noBase=!B;B=noBase?{}:toCurrentWeek(B);L=toCurrentWeek(L);R=toCurrentWeek(R);
   var newerL=(L.t||0)>=(R.t||0),M={v:2,week:weekId(),example:false};
   ["sel","days","hifz","calc","prefs"].forEach(function(k){M[k]=noBase?(newerL?L[k]:R[k]):pick3(B[k],L[k],R[k],newerL);});
+  if(M.hifz){
+    var hb=B.hifz||{},hl=L.hifz||{},hr=R.hifz||{};
+    M.hifz=JSON.parse(JSON.stringify(M.hifz));
+    if((hl.s===hr.s)||noBase) M.hifz.log=mergeMap(normHifzLog(hb),normHifzLog(hl),normHifzLog(hr),noBase||!B.hifz,function(l,r){return Math.max(l,r);});
+    syncHifzTotals(M.hifz);
+  }
   M.rev=mapToRuns(mergeMap(runsToMap(B.rev),runsToMap(L.rev),runsToMap(R.rev),noBase,function(l,r){return Math.min(l,r);}));
   M.grade=mergeMap(B.grade||{},L.grade||{},R.grade||{},noBase,function(l,r){return (l.d||"")>=(r.d||"")?l:r;});
   var lq=L.quiz||{},rq=R.quiz||{},bq=B.quiz||{};
@@ -1148,35 +1196,51 @@ function renderToday(plan,wp){
   el.innerHTML=h;
 }
 function linesWord(n){return n+(n===1?" Zeile":" Zeilen");}
+function shortDay(d){return ["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()];}
+// Lernen: goal + progress, one bar per day (past: learned, future: planned), and the entry for the chosen day.
 function renderHifz(){
-  var h=state.hifz,c=hifzCalc(),html='<div class="eyebrow">Neu lernen · '+SURAHS[h.s][1]+'</div>';
+  var h=state.hifz,c=hifzCalc(),log=h.log,sel=ui.hday&&ui.hday<=c.t?ui.hday:c.t,isToday=sel===c.t;
   var until=isNaN(c.end)?"":c.end.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"numeric"});
-  var goal="Ziel: "+pagesWord(h.pages)+" ("+linesWord(c.total)+")"+(until?" bis "+until:"")+".";
-  if(c.rem===0&&!c.set){
-    html+='<h2>Ziel erreicht</h2><p>'+goal+' Nimm die Sure unter „Plan“ in deine Wiederholung auf und setz dir ein neues Ziel.</p>';
-  }else{
-    html+='<h2>'+(c.set?"Heute "+linesWord(c.logged)+" gelernt":"Heute "+linesWord(c.target)+" neu")+'</h2>';
-    html+='<p>'+goal+' Noch '+linesWord(c.rem)+(c.late?", die Frist ist vorbei.":" in "+(c.days===1?"1 Tag":c.days+" Tagen")+".")+'</p>';
-  }
+  var html='<div class="eyebrow">Neu lernen · '+SURAHS[h.s][1]+'</div>';
+  html+='<div class="hz-top"><div><h2>'+(c.rem===0?"Ziel erreicht":c.set?"Heute "+linesWord(c.logged)+" gelernt":"Heute "+linesWord(c.target)+" lernen")+'</h2>'+
+    '<p class="num">'+c.learned+' von '+linesWord(c.total)+' gelernt'+(c.rem?" · noch "+c.rem:"")+(until?" · bis "+until:"")+(c.late&&c.rem?" · Frist vorbei":"")+'</p></div></div>';
   html+='<div class="bar" role="img" aria-label="'+c.learned+' von '+c.total+' Zeilen gelernt"><i style="width:'+(c.learned/c.total*100).toFixed(1)+'%"></i></div>';
-  html+='<p class="num">'+c.learned+' von '+linesWord(c.total)+' gelernt</p>';
-  if(c.rem>0||c.set){
-    var max=Math.min(c.rem+c.logged,Math.max(c.target+2,c.logged,4));
-    html+='<p><strong>Wie viele Zeilen hast du heute geschafft?</strong></p><div class="h-row">';
+  // day columns: 6 days back, today, and up to 6 planned days until the deadline
+  var cols=[],perDay=c.rem>0?Math.ceil(Math.max(0,c.rem-(c.set?0:c.target))/Math.max(1,c.days-1)):0;
+  var fut=c.rem>0&&!c.late?Math.min(3,c.days-1):0;
+  for(var k=-(6-fut);k<=fut;k++){
+    var d=new Date(c.now);d.setDate(d.getDate()+k);var id=iso(d);
+    cols.push({id:id,d:d,k:k,v:log[id],plan:k===0?(c.set?null:c.target):k>0?perDay:null});
+  }
+  var maxV=Math.max(1,c.target,perDay);cols.forEach(function(x){if(x.v>maxV) maxV=x.v;});
+  html+='<div class="hz-days" role="group" aria-label="Gelernte Zeilen pro Tag">';
+  cols.forEach(function(x){
+    var past=x.k<=0,val=x.v!==undefined?x.v:null,hpx=val!==null?Math.max(val?6:2,val/maxV*64):x.plan?Math.max(6,x.plan/maxV*64):0;
+    html+='<button type="button" class="hzd'+(x.k===0?" today":"")+(x.id===sel?" sel":"")+(past?"":" future")+(val===null&&past&&x.k<0?" none":"")+'"'+(past?' data-act="hday" data-v="'+x.id+'"':' disabled')+' aria-label="'+x.d.toLocaleDateString("de-DE",{weekday:"long"})+': '+(val!==null?linesWord(val)+" gelernt":past?"nichts eingetragen":"geplant "+linesWord(x.plan||0))+'">'+
+      '<span class="hzv num">'+(val!==null?val:past?"–":(x.plan||""))+'</span>'+
+      '<span class="hzb"><i class="'+(val!==null?"done":"plan")+'" style="height:'+hpx.toFixed(0)+'px"></i></span>'+
+      '<span class="hzl">'+(x.k===0?"Heute":shortDay(x.d))+'</span><span class="hzn num">'+x.d.getDate()+'.</span></button>';
+  });
+  html+='</div><p class="hz-leg"><span><span class="lg done"></span> gelernt</span>'+(fut?'<span><span class="lg plan"></span> geplant</span>':'')+'</p>'+
+    '<p class="muted-p">Tippe auf einen vergangenen Tag, um ihn nachzutragen oder zu ändern.</p>';
+  // entry for the chosen day
+  var dSel=new Date(sel+"T12:00:00"),cur=log[sel],label=isToday?"heute":"am "+dSel.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"numeric"});
+  if(c.rem>0||cur!==undefined||!isToday){
+    var room=c.rem+(cur||0),max=Math.min(room,Math.max(c.target+2,cur||0,6));
+    html+='<div class="hz-entry"><p><strong>Wie viele Zeilen hast du '+label+' gelernt?</strong></p><div class="h-row">';
     for(var n=0;n<=max;n++){
-      var on=c.set&&c.logged===n;
-      html+='<button class="chip num'+(n===c.target&&!on?' goal':'')+'" type="button" data-act="hifz-set" data-n="'+n+'" aria-pressed="'+on+'">'+(n===0?"Gar nicht":n)+'</button>';
+      var on=cur===n;
+      html+='<button class="chip num'+(isToday&&n===c.target&&!on?' goal':'')+'" type="button" data-act="hifz-set" data-day="'+sel+'" data-n="'+n+'" aria-pressed="'+on+'">'+(n===0?"Gar nicht":n)+'</button>';
     }
     html+='</div>';
-    if(c.set){
-      var restDays=c.days-1;
-      html+='<p class="hint">'+(c.rem===0?"Ziel erreicht. Nimm die Sure unter „Plan“ in deine Wiederholung auf."
-        :restDays>0?"Ab morgen: "+linesWord(Math.ceil(c.rem/restDays))+" pro Tag, dann schaffst du es bis "+until+"."
-        :"Heute ist der letzte Tag. Es fehlen noch "+linesWord(c.rem)+".")+'</p>';
-    }else html+='<p>Das umrandete Feld ist dein Ziel für heute. Wähl einfach, was du wirklich geschafft hast; der Rest wird auf die nächsten Tage verteilt.</p>';
-  }
-  html+='<div>';
-  $("hifz").innerHTML=html+'</div>';
+    if(!isToday) html+='<div><button class="linkbtn" type="button" data-act="hday" data-v="'+c.t+'">Zurück zu heute</button></div>';
+    else if(c.set&&c.rem>0){var restDays=c.days-1;html+='<p class="hint">'+(restDays>0?"Ab morgen "+linesWord(Math.ceil(c.rem/restDays))+" pro Tag, dann schaffst du es bis "+until.replace(/\.$/,"")+".":"Heute ist der letzte Tag. Es fehlen noch "+linesWord(c.rem)+".")+'</p>';}
+    else if(!c.set) html+='<p class="muted-p">Das umrandete Feld ist dein Ziel für heute. Wähl, was du wirklich geschafft hast. Der Rest wird auf die nächsten Tage verteilt.</p>';
+    html+='</div>';
+  }else html+='<p>Nimm die Sure unter „Plan“ in deine Wiederholung auf und setz dir unten ein neues Ziel.</p>';
+  if(log._vorher) html+='<p class="muted-p">Davon '+linesWord(log._vorher)+' aus der Zeit, bevor die App einzelne Tage gespeichert hat.</p>';
+  $("hifz").innerHTML=html;
+  $("goal-sub").textContent=SURAHS[h.s][1]+" · "+pagesWord(h.pages)+(until?" · bis "+until:"");
   var a=document.activeElement;
   if(a!==$("h-sura")) $("h-sura").value=String(h.s);
   if(a!==$("h-pages")) $("h-pages").value=String(h.pages);
@@ -1549,13 +1613,13 @@ document.addEventListener("click",function(e){
   else if(act==="openday"||act==="pickday"){ui.day=+b.dataset.d;render();
     var dv=$("dayview"),st=$("daystrip"),y=dv.getBoundingClientRect().top-st.offsetHeight-8;
     if(y<0) window.scrollBy(0,y);}
-  else if(act==="hifz-set"){var c=hifzCalc(),h=state.hifz,n=+b.dataset.n;
-    if(c.set&&c.logged===n){h.learned=c.learned-c.logged;h.today=0;h.day="";}
-    else{h.learned=Math.min(c.total,c.learned-c.logged+n);h.today=n;h.day=c.t;}
-    commit();}
+  else if(act==="hifz-set"){var h=state.hifz,n=+b.dataset.n,dy=b.dataset.day||iso(new Date());h.log=h.log||{};
+    if(h.log[dy]===n) delete h.log[dy]; else h.log[dy]=n;
+    syncHifzTotals(h);commit();}
+  else if(act==="hday"){ui.hday=b.dataset.v;renderHifz();}
   else if(act==="hifz-add"){var c=hifzCalc(),h=state.hifz,n=+b.dataset.n;if(h.day!==c.t){h.day=c.t;h.today=0;}
     var next=Math.min(c.total,Math.max(0,c.learned+n));h.today=Math.max(0,h.today+(next-c.learned));h.learned=next;commit();}
-  else if(act==="hifz-reset"){state.hifz.learned=0;state.hifz.today=0;commit();}
+  else if(act==="hifz-reset"){state.hifz.log={};syncHifzTotals(state.hifz);commit();}
   else if(act==="quiz-hint"){ui.hint=!ui.hint;renderQuiz();}
   else if(act==="quiz-scope"){state.quiz.scope=b.dataset.v==="all"?"all":"today";ui.hint=false;ui.show=false;ui.q=null;commit();}
   else if(act==="quiz-show"){ui.show=!ui.show;renderQuiz();}
@@ -1604,7 +1668,7 @@ document.addEventListener("click",function(e){
 $("filter").addEventListener("input",function(e){ui.filter=e.target.value;renderSurahs();});
 
 $("h-sura").innerHTML=SURAHS.map(function(x,i){return '<option value="'+i+'">'+(i+1)+'. '+x[1]+'</option>';}).join("");
-$("h-sura").addEventListener("change",function(e){state.hifz.s=+e.target.value;commit();});
+$("h-sura").addEventListener("change",function(e){var ns=+e.target.value;if(ns!==state.hifz.s){state.hifz.s=ns;state.hifz.log={};syncHifzTotals(state.hifz);}commit();});
 $("h-pages").addEventListener("change",function(e){var v=parseFloat(String(e.target.value).replace(",","."));if(v>0){state.hifz.pages=Math.min(50,v);commit();}});
 $("h-until").addEventListener("change",function(e){if(e.target.value){state.hifz.until=e.target.value;commit();}});
 
@@ -1659,7 +1723,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
   ["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,stop,{passive:false});});
   document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1) e.preventDefault();},{passive:false});
 })();
-var APP_VERSION=12;
+var APP_VERSION=13;
 function checkVersion(){
   if(location.protocol==="file:"||!navigator.onLine) return;
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
