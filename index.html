@@ -225,21 +225,64 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
 @media (prefers-reduced-motion:no-preference){
   .tick,.chip,.seg,.s-box{transition:background-color .15s,border-color .15s,color .15s}
 }
+
+/* App shell: header with profile button, one view per tab, fixed tab bar */
+.top{align-items:center;flex-wrap:nowrap}
+.top-l{display:flex;flex-direction:column;gap:2px;min-width:0}
+.me-btn{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0}
+.me-btn.signed{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.me-btn .ini,.avatar{font-family:var(--display);font-weight:700;font-size:19px}
+.view{display:none;flex-direction:column;gap:28px}
+.view.on{display:flex}
+.wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);max-width:720px;margin:0 auto;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+@media (min-width:721px){.tabbar{border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0}}
+.tab{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--muted);font-size:11px;font-weight:600;border-radius:12px;min-height:52px;justify-content:center}
+.tab[aria-current="page"]{color:var(--accent)}
+.tab[aria-current="page"] svg{stroke-width:2.4}
+.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none}
+.sheet-bg{position:absolute;inset:0;background:rgba(8,14,12,.45)}
+.sheet-card{position:relative;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:var(--bg);border-radius:22px 22px 0 0;
+  padding:18px 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:20px}
+@media (min-width:600px){.sheet{align-items:center}.sheet-card{border-radius:22px;max-height:84vh}}
+body.noscroll{overflow:hidden}
+.me-head{display:flex;align-items:center;gap:14px}
+.avatar{flex:none;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--surface);display:grid;place-items:center;font-size:24px}
+.avatar svg{width:28px;height:28px}
+.me-who{flex:1;min-width:0}
+.me-who h2{font-size:22px}
+.me-who p{margin:0;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.x{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:16px;color:var(--muted)}
+.me-sec{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.me-sec h3{margin:0;font-family:var(--display);font-size:16px}
+.muted-p{margin:0;color:var(--muted);font-size:14px}
+.me-sample{margin:0;font-size:22px;line-height:1.8;text-align:right;color:var(--ink)}
+.seg2{display:flex;gap:6px}
+.seg2 .chip{flex:1}
+.sheet-card p.hint,.learn p.hint{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 14px;margin:0;font-size:14px}
+body.ar-l :is(.portion .ar,.d-more .ar,.s-main .ar,p.ayah,.passage p,.me-sample){zoom:1.2}
+body.ar-xl :is(.portion .ar,.d-more .ar,.s-main .ar,p.ayah,.passage p,.me-sample){zoom:1.45}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <h1><span class="ar name" lang="ar">المراجعة الحورانية</span></h1>
-    <span class="date" id="date"></span>
+    <div class="top-l">
+      <h1><span class="ar name" lang="ar">المراجعة الحورانية</span></h1>
+      <span class="date" id="date"></span>
+    </div>
+    <button class="me-btn" id="me-btn" type="button" data-act="me" aria-label="Profil und Einstellungen" aria-haspopup="dialog"></button>
   </header>
 
+  <div class="view" data-tab="heute">
   <section class="learn" id="acct" hidden aria-live="polite"></section>
-
   <section class="today" id="today" aria-live="polite"></section>
+  </div>
 
-  <section class="learn" id="hifz" aria-live="polite"></section>
-
+  <div class="view" data-tab="woche">
   <section class="sec" aria-labelledby="h-week">
     <div class="sec-head">
       <h2 id="h-week">Diese Woche</h2>
@@ -251,9 +294,24 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
     <div id="grades" class="grades-box" aria-labelledby="h-grades"></div>
     <div><button class="linkbtn" type="button" data-act="resetweek">Haken dieser Woche löschen</button></div>
   </section>
+  </div>
 
+  <div class="view" data-tab="pruefen">
   <section class="learn" id="quiz" aria-live="polite"></section>
+  </div>
 
+  <div class="view" data-tab="lernen">
+  <section class="learn" id="hifz" aria-live="polite"></section>
+  <section class="sec" aria-labelledby="h-learn">
+    <div class="sec-head"><h2 id="h-learn">Was lernst du gerade neu?</h2></div>
+    <p class="lead">Eine Mushaf-Seite hat 15 Zeilen. Die Seite rechnet dein Ziel in Zeilen pro Tag um und passt die Menge an, wenn du mal mehr oder weniger schaffst.</p>
+    <div class="fields">
+      <label for="h-sura">Sure<select id="h-sura"></select></label>
+      <label for="h-pages">Seiten<input id="h-pages" type="number" min="0.25" max="50" step="0.25" inputmode="decimal"></label>
+      <label for="h-until">Fertig bis<input id="h-until" type="date"></label>
+    </div>
+    <div><button class="linkbtn" type="button" data-act="hifz-reset">Gelernte Zeilen auf 0 setzen</button></div>
+  </section>
   <section class="sec" aria-labelledby="h-calc">
     <div class="sec-head"><h2 id="h-calc">Zielrechner</h2></div>
     <p class="lead">Tippe ein Ziel und ein Datum ein. Die Seite rechnet aus, wie viel du pro Tag neu lernen musst, und zieht ab, was du schon kannst.</p>
@@ -265,27 +323,14 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
     </div>
     <div class="calc-out" id="calc-out" aria-live="polite"></div>
   </section>
+  </div>
 
-  <details class="settings">
-  <summary>Plan ändern</summary>
-  <div class="settings-body">
+  <div class="view" data-tab="plan">
   <section class="sec" aria-labelledby="h-days">
     <div class="sec-head"><h2 id="h-days">An welchen Tagen wiederholst du?</h2></div>
     <p class="lead">Der Plan verteilt alles gleichmäßig auf die gewählten Tage. Ein freier Tag macht die anderen Portionen größer.</p>
     <div class="chips" id="days"></div>
   </section>
-
-  <section class="sec" aria-labelledby="h-learn">
-    <div class="sec-head"><h2 id="h-learn">Was lernst du gerade neu?</h2></div>
-    <p class="lead">Eine Mushaf-Seite hat 15 Zeilen. Die Seite rechnet dein Ziel in Zeilen pro Tag um und passt die Menge an, wenn du mal mehr oder weniger schaffst.</p>
-    <div class="fields">
-      <label for="h-sura">Sure<select id="h-sura"></select></label>
-      <label for="h-pages">Seiten<input id="h-pages" type="number" min="0.25" max="50" step="0.25" inputmode="decimal"></label>
-      <label for="h-until">Fertig bis<input id="h-until" type="date"></label>
-    </div>
-    <div><button class="linkbtn" type="button" data-act="hifz-reset">Gelernte Zeilen auf 0 setzen</button></div>
-  </section>
-
   <section class="sec" aria-labelledby="h-sel">
     <div class="sec-head">
       <h2 id="h-sel">Was kannst du auswendig?</h2>
@@ -302,7 +347,6 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
     <div class="surahs" id="surahs"><ul id="surah-list"></ul></div>
     <div><button class="linkbtn" type="button" data-act="clear">Auswahl leeren</button></div>
   </section>
-
   <section class="sec" aria-labelledby="h-backup">
     <div class="sec-head"><h2 id="h-backup">Daten übertragen</h2></div>
     <p class="lead">So nimmst du deinen Plan auf ein anderes Gerät oder in die App mit: Tippe hier auf „Code kopieren“. Füge den Code auf dem anderen Gerät in das Feld ein und tippe auf „Übernehmen“.</p>
@@ -311,15 +355,25 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
     <div class="h-row"><button class="chip" type="button" data-act="imp">Übernehmen</button></div>
     <p id="bk-msg" class="lead" aria-live="polite"></p>
   </section>
-
-  </div>
-  </details>
-
   <footer class="foot">
     <p id="sync">Dein Plan wird auf diesem Gerät gespeichert.</p>
     <p>Der Korantext wird nicht von der Seite selbst geschrieben. Er kommt aus dem veröffentlichten Datensatz quran-json 3.1.2 oder aus deiner Tanzil-Datei.</p>
     <p>Seitenzahlen nach dem Medina-Mushaf mit 604 Seiten. Wo mehrere kurze Suren auf einer Seite stehen, sind die Längen geschätzt.</p>
   </footer>
+  </div>
+</div>
+
+  <nav class="tabbar" aria-label="Bereiche">
+    <button type="button" class="tab" data-act="tab" data-v="heute" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg><span>Heute</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="woche" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Woche</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="pruefen" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg><span>Prüfen</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="lernen" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5c-2-1.4-4.8-1.8-8-1.3v13c3.2-.5 6 0 8 1.3 2-1.3 4.8-1.8 8-1.3v-13c-3.2-.5-6-.1-8 1.3zM12 6.5v13"/></svg><span>Lernen</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="plan" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg><span>Plan</span></button>
+  </nav>
+
+<div class="sheet" id="me" hidden>
+  <div class="sheet-bg" data-act="me-close"></div>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="me-title" id="me-card"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
@@ -506,7 +560,9 @@ state.calc=defaultCalc();
 state.quiz={weak:[],hist:[],scope:"today"};
 state.grade={};
 state.rev={};
-var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false};
+function defaultPrefs(){return {name:"",theme:"auto",ar:"m",start:"last"};}
+state.prefs=defaultPrefs();
+var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false,tab:"heute"};
 setAll(atomsWhere(function(t){return t.surah>=60;}),1); // start: As-Saff (61) bis An-Nas (114)
 
 function revRuns(){
@@ -518,7 +574,7 @@ function revRuns(){
   }
   return r;
 }
-function serialize(){return {v:2,sel:toRuns(),days:state.days,week:state.week,rev:revRuns(),grade:state.grade,example:state.example,t:state.t,hifz:state.hifz,calc:state.calc,quiz:state.quiz};}
+function serialize(){return {v:2,sel:toRuns(),days:state.days,week:state.week,rev:revRuns(),grade:state.grade,example:state.example,t:state.t,hifz:state.hifz,calc:state.calc,quiz:state.quiz,prefs:state.prefs};}
 function adopt(o){
   if(!o||!Array.isArray(o.sel)) return false;
   fromRuns(o.sel);
@@ -542,6 +598,8 @@ function adopt(o){
   state.calc=c&&typeof c==="object"?{goal:/^[js]\d+$|^x$/.test(c.goal)?c.goal:dc.goal,pages:c.pages>0?+c.pages:dc.pages,until:typeof c.until==="string"?c.until:dc.until,dpw:c.dpw>=1&&c.dpw<=7?c.dpw|0:dc.dpw}:dc;
   var h=o.hifz,dh=defaultHifz();
   state.hifz=h&&typeof h==="object"?{s:h.s>=0&&h.s<NS?h.s|0:dh.s,pages:h.pages>0?+h.pages:dh.pages,until:typeof h.until==="string"?h.until:dh.until,learned:+h.learned||0,day:typeof h.day==="string"?h.day:"",today:+h.today||0}:dh;
+  var pr=o.prefs,dp=defaultPrefs();
+  state.prefs=pr&&typeof pr==="object"?{name:typeof pr.name==="string"?pr.name.slice(0,30):"",theme:/^(auto|light|dark)$/.test(pr.theme)?pr.theme:dp.theme,ar:/^(m|l|xl)$/.test(pr.ar)?pr.ar:dp.ar,start:/^(last|heute|pruefen|lernen)$/.test(pr.start)?pr.start:dp.start}:(state.prefs||dp);
   rollWeek();
   return true;
 }
@@ -585,45 +643,133 @@ function useSession(session){
   ref=sbRef(sbUser.id);setSync("account");
   pull().then(function(){if(pending) scheduleRemote();}).catch(function(){});
 }
-var acct={mode:"login",msg:"",busy:false,later:false};
+var acct={mode:"login",msg:"",busy:false,later:false,mail:""};
 try{acct.later=localStorage.getItem("muraja-acct-later")==="1";}catch(e){}
+function esc(x){return String(x==null?"":x).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+// Sign-in / sign-up form; shown on the Heute tab while signed out, and inside the profile sheet.
+function acctFormHtml(){
+  var reg=acct.mode==="register";
+  return '<div class="seg2" role="group" aria-label="Anmelden oder Konto anlegen">'+
+      '<button type="button" class="chip" data-act="acct-mode" data-v="login" aria-pressed="'+!reg+'">Anmelden</button>'+
+      '<button type="button" class="chip" data-act="acct-mode" data-v="register" aria-pressed="'+reg+'">Neues Konto</button></div>'+
+    '<p class="muted-p">'+(reg?"Nur einmal nötig. Danach meldest du dich auf jedem Gerät mit derselben E-Mail und demselben Passwort an.":"Melde dich auf jedem Gerät einmal an. Danach sind Haken, Bewertungen und Lernziel überall gleich.")+'</p>'+
+    '<form class="acct-form fields" autocomplete="on">'+
+    '<label>E-Mail<input name="email" type="email" autocomplete="username email" inputmode="email" autocapitalize="off" value="'+esc(acct.mail)+'" required></label>'+
+    '<label>Passwort'+(reg?" (mind. 6 Zeichen)":"")+'<input name="password" type="password" minlength="6" autocomplete="'+(reg?"new-password":"current-password")+'" required></label>'+
+    '<div class="h-row" style="grid-column:1/-1"><button class="btn-acc" type="submit"'+(acct.busy?" disabled":"")+'>'+(acct.busy?"Moment …":reg?"Konto anlegen":"Anmelden")+'</button></div></form>'+
+    (acct.msg?'<p class="hint">'+acct.msg+'</p>':'');
+}
 function renderAcct(){
+  renderMeBtn();
+  if(!$("me").hidden) renderMe();
   var el=$("acct");if(!el) return;
   if(!sb||sbUser||acct.later){el.hidden=true;return;}
   el.hidden=false;
-  var reg=acct.mode==="register";
-  el.innerHTML='<div class="eyebrow">Auf allen Geräten gleich</div><h2>'+(reg?"Konto anlegen":"Anmelden")+'</h2>'+
-    '<p>'+(reg?"Nur einmal nötig. Danach meldest du dich auf jedem Gerät einmal mit derselben E-Mail und demselben Passwort an.":"Melde dich auf jedem Gerät einmal an. Danach sind Haken, Bewertungen und Lernziel überall automatisch gleich.")+'</p>'+
-    '<form id="acct-form" class="fields" autocomplete="on">'+
-    '<label for="a-mail">E-Mail<input id="a-mail" name="email" type="email" autocomplete="username email" required></label>'+
-    '<label for="a-pw">Passwort'+(reg?" (mind. 6 Zeichen)":"")+'<input id="a-pw" name="password" type="password" minlength="6" autocomplete="'+(reg?"new-password":"current-password")+'" required></label>'+
-    '<div class="h-row" style="grid-column:1/-1"><button class="btn-acc" type="submit"'+(acct.busy?" disabled":"")+'>'+(acct.busy?"Moment …":reg?"Konto anlegen":"Anmelden")+'</button>'+
-    '<button class="linkbtn" type="button" data-act="acct-mode">'+(reg?"Ich habe schon ein Konto":"Noch kein Konto? Hier anlegen")+'</button></div></form>'+
-    (acct.msg?'<p class="hint">'+acct.msg+'</p>':'')+
+  el.innerHTML='<div class="eyebrow">Auf allen Geräten gleich</div><h2>'+(acct.mode==="register"?"Konto anlegen":"Anmelden")+'</h2>'+acctFormHtml()+
     '<div><button class="linkbtn" type="button" data-act="acct-later">Später</button></div>';
 }
 function authError(e){
   var m=String(e&&e.message||"");
-  if(/Invalid login/i.test(m)) return "E-Mail oder Passwort stimmt nicht.";
-  if(/already registered|already exists/i.test(m)) return "Für diese E-Mail gibt es schon ein Konto. Melde dich einfach an.";
+  if(/Invalid login/i.test(m)) return acct.mode==="login"?"E-Mail oder Passwort stimmt nicht. Hast du noch kein Konto? Dann tippe oben auf „Neues Konto“.":"E-Mail oder Passwort stimmt nicht.";
+  if(/already registered|already exists/i.test(m)) return "Für diese E-Mail gibt es schon ein Konto. Tippe oben auf „Anmelden“.";
   if(/at least 6|Password should/i.test(m)) return "Das Passwort muss mindestens 6 Zeichen haben.";
   if(/rate limit|too many/i.test(m)) return "Zu viele Versuche. Warte kurz und versuch es noch einmal.";
+  if(/invalid.*email|email.*invalid/i.test(m)) return "Diese E-Mail-Adresse sieht nicht richtig aus.";
   if(/fetch|network/i.test(m)) return "Keine Verbindung zum Internet.";
-  return "Das hat nicht geklappt: "+m;
+  return "Das hat nicht geklappt: "+esc(m);
 }
 document.addEventListener("submit",function(e){
-  if(e.target.id!=="acct-form") return;
+  var f=e.target;
+  if(f.classList.contains("pw-form")){
+    e.preventDefault();
+    if(!sb||!sbUser) return;
+    var np=f.elements.newpw.value;
+    if(np.length<6){me.msg="Das Passwort muss mindestens 6 Zeichen haben.";renderMe();return;}
+    sb.auth.updateUser({password:np}).then(function(r){me.msg=r.error?authError(r.error):"Passwort geändert.";me.pw=false;renderMe();});
+    return;
+  }
+  if(!f.classList.contains("acct-form")) return;
   e.preventDefault();
   if(!sb||acct.busy) return;
-  var mail=$("a-mail").value.trim(),pw=$("a-pw").value,reg=acct.mode==="register";
-  acct.busy=true;acct.msg="";renderAcct();
+  var mail=f.elements.email.value.trim(),pw=f.elements.password.value,reg=acct.mode==="register";
+  acct.mail=mail;acct.busy=true;acct.msg="";renderAcct();
   (reg?sb.auth.signUp({email:mail,password:pw}):sb.auth.signInWithPassword({email:mail,password:pw})).then(function(r){
     acct.busy=false;
     if(r.error){acct.msg=authError(r.error);renderAcct();return;}
-    if(!r.data.session){acct.msg="Konto angelegt. Melde dich jetzt an.";acct.mode="login";renderAcct();return;}
+    if(!r.data.session){acct.msg="Konto angelegt. Tippe oben auf „Anmelden“ und melde dich an.";acct.mode="login";renderAcct();return;}
     if(reg) pending=true;
+    acct.msg="";
   }).catch(function(err){acct.busy=false;acct.msg=authError(err);renderAcct();});
 });
+
+/* ---- tabs ---- */
+var TABS=["heute","woche","pruefen","lernen","plan"];
+function showTab(k,noScroll){
+  if(TABS.indexOf(k)<0) k="heute";
+  ui.tab=k;
+  document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("on",v.dataset.tab===k);});
+  document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===k?"page":"false");});
+  if(location.hash!=="#"+k) history.replaceState(null,"","#"+k);
+  try{localStorage.setItem("muraja-tab",k);}catch(e){}
+  if(!noScroll) window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",function(){showTab(location.hash.slice(1));});
+
+/* ---- profile & settings ---- */
+var me={msg:"",pw:false};
+var PERSON='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.8 4.2-5.6 7.5-5.6s6.3 1.8 7.5 5.6"/></svg>';
+function initial(){var n=(state.prefs.name||"").trim();return n?n.charAt(0).toUpperCase():"";}
+function renderMeBtn(){
+  var b=$("me-btn"),ini=initial();
+  b.innerHTML=ini?'<span class="ini">'+esc(ini)+'</span>':PERSON;
+  b.classList.toggle("signed",!!sbUser);
+}
+function chipRow(act,cur,opts){
+  return '<div class="chips">'+opts.map(function(o){return '<button type="button" class="chip" data-act="'+act+'" data-v="'+o[0]+'" aria-pressed="'+(cur===o[0])+'">'+o[1]+'</button>';}).join("")+'</div>';
+}
+function renderMe(){
+  var p=state.prefs,ini=initial(),h='';
+  h+='<div class="me-head"><div class="avatar">'+(ini?esc(ini):PERSON)+'</div><div class="me-who"><h2 id="me-title">'+(p.name?esc(p.name):"Dein Profil")+'</h2>'+
+    '<p>'+(sbUser?esc(sbUser.email):"Nicht angemeldet")+'</p></div><button type="button" class="x" data-act="me-close" aria-label="Schließen">✕</button></div>';
+  if(!sbUser){
+    h+='<div class="me-sec"><h3>Konto</h3>'+(sb?acctFormHtml():'<p class="muted-p">Für die Anmeldung braucht die App einmal Internet.</p>')+'</div>';
+  }
+  h+='<div class="me-sec"><h3>Dein Name</h3><p class="muted-p">Für die Begrüßung und dein Profilbild.</p>'+
+    '<input class="filter" id="p-name" type="text" maxlength="30" autocomplete="given-name" placeholder="Wie heißt du?" value="'+esc(p.name)+'"></div>';
+  h+='<div class="me-sec"><h3>Aussehen</h3>'+chipRow("pref-theme",p.theme,[["auto","Automatisch"],["light","Hell"],["dark","Dunkel"]])+'</div>';
+  h+='<div class="me-sec"><h3>Arabische Schrift</h3>'+chipRow("pref-ar",p.ar,[["m","Normal"],["l","Groß"],["xl","Sehr groß"]])+
+    '<p class="ar me-sample" lang="ar">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p></div>';
+  h+='<div class="me-sec"><h3>Abfrage</h3><p class="muted-p">Was beim Prüfen drankommt.</p>'+chipRow("pref-scope",state.quiz.scope==="all"?"all":"today",[["today","Nur heutige Portion"],["all","Alles, was ich kann"]])+'</div>';
+  h+='<div class="me-sec"><h3>Startbereich</h3><p class="muted-p">Welcher Bereich beim Öffnen der App kommt.</p>'+chipRow("pref-start",p.start,[["last","Zuletzt offen"],["heute","Heute"],["pruefen","Prüfen"],["lernen","Lernen"]])+'</div>';
+  if(sbUser){
+    h+='<div class="me-sec"><h3>Konto</h3><p class="muted-p">Dein Plan ist auf allen Geräten gleich, auf denen du mit dieser E-Mail angemeldet bist.</p>';
+    if(me.pw) h+='<form class="pw-form fields"><label>Neues Passwort (mind. 6 Zeichen)<input name="newpw" type="password" minlength="6" autocomplete="new-password" required></label>'+
+      '<div class="h-row" style="grid-column:1/-1"><button class="btn-acc" type="submit">Speichern</button><button class="linkbtn" type="button" data-act="pw-toggle">Abbrechen</button></div></form>';
+    else h+='<div class="h-row"><button class="chip" type="button" data-act="pw-toggle">Passwort ändern</button><button class="chip" type="button" data-act="logout">Abmelden</button></div>';
+    h+='</div>';
+  }
+  if(me.msg) h+='<p class="hint">'+me.msg+'</p>';
+  $("me-card").innerHTML=h;
+}
+function openMe(){me.msg="";me.pw=false;renderMe();$("me").hidden=false;document.body.classList.add("noscroll");var x=$("me-card").querySelector(".x");if(x) x.focus();}
+function closeMe(){$("me").hidden=true;document.body.classList.remove("noscroll");$("me-btn").focus();}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("me").hidden) closeMe();});
+document.addEventListener("input",function(e){
+  if(e.target.id==="p-name"){state.prefs.name=e.target.value.slice(0,30);clearTimeout(me.nt);me.nt=setTimeout(function(){commitQuiet();renderMeBtn();renderHello();},500);}
+});
+// Save and sync without re-rendering the sheet (keeps the keyboard open while typing).
+function commitQuiet(){state.t=Date.now();state.example=false;saveLocal();scheduleRemote();}
+function applyPrefs(){
+  var p=state.prefs,r=document.documentElement;
+  if(p.theme==="light"||p.theme==="dark") r.setAttribute("data-theme",p.theme); else r.removeAttribute("data-theme");
+  document.body.classList.toggle("ar-l",p.ar==="l");document.body.classList.toggle("ar-xl",p.ar==="xl");
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m){var dark=p.theme==="dark"||(p.theme!=="light"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);m.setAttribute("content",dark?"#0e1614":"#17503f");}
+}
+function renderHello(){
+  var n=(state.prefs.name||"").trim();
+  $("date").textContent=(n?"Salam, "+n+" · ":"")+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+}
 function initSupabase(){
   if(!window.supabase||typeof window.supabase.createClient!=="function"){setSync("local");return;}
   sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
@@ -700,9 +846,9 @@ function renderToday(plan,wp){
   var left=p?p.pages-p.donePages:0,done=!!p&&left<1e-6;
   el.className="today"+(done?" is-done":"");
   if(!plan.count){
-    h+='<h2>Noch nichts ausgewählt</h2><div class="amount">Markiere unter „Plan ändern“, was du auswendig kannst. Daraus entsteht dein Wochenplan.</div>';
+    h+='<h2>Noch nichts ausgewählt</h2><div class="amount">Markiere unter „Plan“, was du auswendig kannst. Daraus entsteht dein Wochenplan.</div>';
   }else if(!plan.active.length){
-    h+='<h2>Kein Wochentag gewählt</h2><div class="amount">Wähle unter „Plan ändern“ mindestens einen Tag für deine Wiederholung.</div>';
+    h+='<h2>Kein Wochentag gewählt</h2><div class="amount">Wähle unter „Plan“ mindestens einen Tag für deine Wiederholung.</div>';
   }else if(!p){
     h+='<h2>Heute ist frei</h2><div class="amount">Für heute steht nichts im Plan.</div>';
   }else{
@@ -714,7 +860,7 @@ function renderToday(plan,wp){
     }).join("")+'</ul>';
     if(!done) h+='<button class="btn-main" type="button" data-act="dayall" data-d="'+t+'">Alles von heute erledigt</button>';
   }
-  if(open.length) h+='<div class="note">Von '+open.join(", ")+' ist noch etwas offen. Der Rest ist schon auf heute und die nächsten Tage verteilt. Hast du an dem Tag doch etwas gemacht, hake es unter „Diese Woche“ an.</div>';
+  if(open.length) h+='<div class="note">Von '+open.join(", ")+' ist noch etwas offen. Der Rest ist schon auf heute und die nächsten Tage verteilt. Hast du an dem Tag doch etwas gemacht, hake es im Bereich „Woche“ an.</div>';
   el.innerHTML=h;
 }
 function linesWord(n){return n+(n===1?" Zeile":" Zeilen");}
@@ -723,7 +869,7 @@ function renderHifz(){
   var until=isNaN(c.end)?"":c.end.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"numeric"});
   var goal="Ziel: "+pagesWord(h.pages)+" ("+linesWord(c.total)+")"+(until?" bis "+until:"")+".";
   if(c.rem===0&&!c.set){
-    html+='<h2>Ziel erreicht</h2><p>'+goal+' Nimm die Sure unter „Plan ändern“ in deine Wiederholung auf und setz dir ein neues Ziel.</p>';
+    html+='<h2>Ziel erreicht</h2><p>'+goal+' Nimm die Sure unter „Plan“ in deine Wiederholung auf und setz dir ein neues Ziel.</p>';
   }else{
     html+='<h2>'+(c.set?"Heute "+linesWord(c.logged)+" gelernt":"Heute "+linesWord(c.target)+" neu")+'</h2>';
     html+='<p>'+goal+' Noch '+linesWord(c.rem)+(c.late?", die Frist ist vorbei.":" in "+(c.days===1?"1 Tag":c.days+" Tagen")+".")+'</p>';
@@ -740,7 +886,7 @@ function renderHifz(){
     html+='</div>';
     if(c.set){
       var restDays=c.days-1;
-      html+='<p class="hint">'+(c.rem===0?"Ziel erreicht. Nimm die Sure unter „Plan ändern“ in deine Wiederholung auf."
+      html+='<p class="hint">'+(c.rem===0?"Ziel erreicht. Nimm die Sure unter „Plan“ in deine Wiederholung auf."
         :restDays>0?"Ab morgen: "+linesWord(Math.ceil(c.rem/restDays))+" pro Tag, dann schaffst du es bis "+until+"."
         :"Heute ist der letzte Tag. Es fehlen noch "+linesWord(c.rem)+".")+'</p>';
     }else html+='<p>Das umrandete Feld ist dein Ziel für heute. Wähl einfach, was du wirklich geschafft hast; der Rest wird auf die nächsten Tage verteilt.</p>';
@@ -905,7 +1051,7 @@ function renderQuiz(){
   if(!qValid(ui.q)){ui.q=newQuestion();ui.hint=false;ui.show=false;}
   var q=ui.q,w=state.quiz.weak,h;
   if(!q){
-    h='<div class="eyebrow">Abfrage</div><h2>Noch nichts zum Abfragen</h2><p>Hake unter „Plan ändern“ mindestens eine ganze Sure an.</p>';
+    h='<div class="eyebrow">Abfrage</div><h2>Noch nichts zum Abfragen</h2><p>Hake unter „Plan“ mindestens eine ganze Sure an.</p>';
   }else{
     var x=qText(q),isWeak=w.some(function(y){return qKey(y)===qKey(q);});
     var st=qStart(q),ay=st&&TEXT[st.s]?TEXT[st.s][st.n-1]:null,name=SURAHS[q.s][1];
@@ -1057,7 +1203,7 @@ function renderSurahs(){
 }
 function render(){
   var plan=buildPlan(state.days);
-  $("date").textContent=new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+  renderHello();applyPrefs();renderMeBtn();
   var wp=nowPlan();renderToday(plan,wp);renderHifz();renderWeek(wp);renderGrades();renderQuiz();renderCalc();renderDays();renderSelection(plan);
 }
 
@@ -1115,10 +1261,18 @@ document.addEventListener("click",function(e){
     if(obj&&adopt(obj)){state.t=Date.now();state.example=false;saveLocal();scheduleRemote();render();$("bk").value="";$("bk-msg").textContent="Übernommen. Dein Plan auf diesem Gerät ist jetzt wie auf dem anderen.";}
     else $("bk-msg").textContent="Mit diesem Code kann ich nichts anfangen. Kopiere ihn noch einmal vollständig.";
   }
-  else if(act==="acct-mode"){acct.mode=acct.mode==="register"?"login":"register";acct.msg="";renderAcct();}
+  else if(act==="acct-mode"){var fm=document.querySelector(".acct-form");if(fm) acct.mail=fm.elements.email.value;acct.mode=b.dataset.v==="register"?"register":"login";acct.msg="";renderAcct();}
+  else if(act==="tab"){showTab(b.dataset.v);}
+  else if(act==="me"){openMe();}
+  else if(act==="me-close"){closeMe();}
+  else if(act==="pref-theme"){state.prefs.theme=b.dataset.v;commit();renderMe();}
+  else if(act==="pref-ar"){state.prefs.ar=b.dataset.v;commit();renderMe();}
+  else if(act==="pref-start"){state.prefs.start=b.dataset.v;commit();renderMe();}
+  else if(act==="pref-scope"){state.quiz.scope=b.dataset.v==="all"?"all":"today";ui.q=null;ui.hint=false;ui.show=false;commit();renderMe();}
+  else if(act==="pw-toggle"){me.pw=!me.pw;me.msg="";renderMe();}
   else if(act==="acct-show"){acct.later=false;try{localStorage.removeItem("muraja-acct-later");}catch(err){}renderAcct();window.scrollTo({top:0,behavior:"smooth"});}
   else if(act==="acct-later"){acct.later=true;try{localStorage.setItem("muraja-acct-later","1");}catch(err){}renderAcct();}
-  else if(act==="logout"){if(sb) sb.auth.signOut();acct.later=false;try{localStorage.removeItem("muraja-acct-later");}catch(err){}}
+  else if(act==="logout"){if(sb) sb.auth.signOut();me.msg="Du bist abgemeldet. Deine Daten bleiben auf diesem Gerät.";acct.later=false;try{localStorage.removeItem("muraja-acct-later");}catch(err){}}
   else if(act==="resetweek"){state.rev={};commit();}
   else if(act==="day"){state.days[+b.dataset.d]=!state.days[+b.dataset.d];commit();}
   else if(act==="clear"){sel.fill(0);commit();}
@@ -1163,6 +1317,11 @@ try{var saved=localStorage.getItem("muraja-text");if(saved) parseTanzil(saved);}
 render();
 initSync();
 initSupabase();
+(function(){
+  var h=location.hash.slice(1),last="heute";try{last=localStorage.getItem("muraja-tab")||"heute";}catch(e){}
+  var st=state.prefs.start;showTab(TABS.indexOf(h)>=0?h:st&&st!=="last"?st:last,true);
+})();
+if(window.matchMedia) try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyPrefs);}catch(e){}
 if("serviceWorker" in navigator&&location.protocol!=="file:") navigator.serviceWorker.register("sw.js").catch(function(){});
 fetch("quran.txt").then(function(r){return r.ok?r.text():"";}).then(function(t){if(t&&parseTanzil(t)) renderQuiz();}).catch(function(){});
 </script>

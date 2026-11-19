@@ -1,6 +1,6 @@
 // Keeps the app working offline. Own files: show the saved copy at once and refresh it
 // in the background. Fonts and Quran text from the CDN: saved once, then served from the cache.
-var V = "muraja-v2";
+var V = "muraja-v3";
 var SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
