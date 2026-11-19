@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17503f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Muraja">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>المراجعة الحورانية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column. A solid pine "today" block carries the weight; the week
+   is a ribbon whose segment widths are the real page counts; everything else is quiet. */
+:root{
+  --bg:#f1f4ef; --surface:#ffffff; --ink:#14231f; --muted:#5b6b65; --line:#d6ddd6;
+  --accent:#1c6450; --accent-soft:#dcebe4; --gold:#b5842a;
+  --hero-bg:#17503f; --hero-ink:#f4f8f5; --hero-muted:#b4cfc4; --hero-line:rgba(255,255,255,.18);
+  --warn:#a5521c; --warn-soft:#f6e6d8;
+  --display:"Bricolage Grotesque","Figtree",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --arabic:"Amiri","Noto Naskh Arabic","Geeza Pro",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1614; --surface:#16211e; --ink:#e7eeea; --muted:#93a59e; --line:#27362f;
+    --accent:#62c4a5; --accent-soft:#1c342c; --gold:#dcae52;
+    --hero-bg:#1b4a3c; --hero-ink:#f1f7f4; --hero-muted:#a9c8bc; --hero-line:rgba(255,255,255,.16);
+    --warn:#e9a06a; --warn-soft:#3a281b;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1614; --surface:#16211e; --ink:#e7eeea; --muted:#93a59e; --line:#27362f;
+  --accent:#62c4a5; --accent-soft:#1c342c; --gold:#dcae52;
+  --hero-bg:#1b4a3c; --hero-ink:#f1f7f4; --hero-muted:#a9c8bc; --hero-line:rgba(255,255,255,.16);
+  --warn:#e9a06a; --warn-soft:#3a281b;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 56px;display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0}
+.ar{font-family:var(--arabic);direction:rtl}
+.num{font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.top h1 .ar{font-weight:700;font-size:30px;line-height:1.3;color:var(--accent)}
+.top .date{color:var(--muted);font-size:14px}
+
+/* Today */
+.today{background:var(--hero-bg);color:var(--hero-ink);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px}
+.today .eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--hero-muted);font-weight:600}
+.today h2{font-size:clamp(28px,7vw,40px);line-height:1.08;font-weight:700;letter-spacing:-.02em}
+.today .amount{color:var(--hero-muted);font-size:15px}
+.portion{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.portion li{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--hero-line)}
+.portion li:last-child{border-bottom:1px solid var(--hero-line)}
+.portion .p-name{font-weight:600;font-size:17px}
+.portion .p-sub{display:block;font-weight:400;font-size:14px;color:var(--hero-muted)}
+.portion .ar{font-size:22px;line-height:1.2;white-space:nowrap}
+.today.is-done .portion{opacity:.6}
+.portion li{cursor:pointer}
+.portion .p-name{flex:1}
+.itick{flex:none;align-self:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--hero-muted);background:transparent;color:var(--hero-ink);font-weight:700;font-size:14px;line-height:1;display:grid;place-items:center}
+.itick[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1b1405}
+.btn-main{align-self:flex-start;background:var(--gold);color:#1b1405;border:0;border-radius:999px;padding:12px 22px;font-weight:600;font-size:16px}
+.btn-main:hover{filter:brightness(1.06)}
+.btn-ghost{align-self:flex-start;background:transparent;color:var(--hero-ink);border:1px solid var(--hero-line);border-radius:999px;padding:10px 18px;font-size:15px}
+.note{font-size:14px;border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.1);color:var(--hero-ink)}
+
+/* Learn */
+.learn{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:14px}
+.learn .eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.learn h2{font-size:clamp(24px,6vw,32px);line-height:1.1;font-weight:700;letter-spacing:-.02em}
+.learn p{margin:0;color:var(--muted);font-size:15px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:5px}
+.h-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn-acc{background:var(--accent);color:var(--surface);border:0;border-radius:999px;padding:11px 20px;font-weight:600;font-size:16px}
+.btn-acc:hover{filter:brightness(1.08)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.fields label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.fields select,.fields input{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:400;font-size:16px;color:var(--ink);min-width:0;width:100%}
+
+.calc-out{background:var(--accent-soft);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.calc-out .big{font-family:var(--display);font-weight:700;font-size:clamp(22px,5.5vw,28px);line-height:1.15;color:var(--accent)}
+.calc-out p{margin:0;font-size:15px;max-width:60ch}
+[hidden]{display:none!important}
+
+.learn p.hint{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 14px}
+.learn p.ayah{font-family:var(--arabic);font-size:28px;line-height:1.9;text-align:right;color:var(--ink);background:var(--accent-soft);border-radius:12px;padding:6px 16px}
+.passage{background:var(--accent-soft);border-radius:12px;padding:8px 16px;font-family:var(--arabic);text-align:right}
+.learn .passage p{font-size:24px;line-height:1.9;color:var(--ink)}
+.an{display:inline-block;font-family:var(--body);font-size:12px;line-height:1.6;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:0 7px;vertical-align:middle}
+.p-head{font-family:var(--body);font-size:13px;font-weight:600;color:var(--muted);text-align:left;border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+.bar3{display:flex;gap:3px;height:10px}
+.bar3 i{flex:1 1 0;border-radius:5px}
+.bar3 .ok{background:var(--accent)}.bar3 .mid{background:var(--gold)}.bar3 .bad{background:var(--warn)}
+.filelabel{font-size:13px;font-weight:600;color:var(--muted)}
+.chip.goal{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.grades{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.gr{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;line-height:1.5}
+.portion .gr{border-color:var(--hero-line);color:var(--hero-muted)}
+.gr[aria-pressed="true"].g1{background:#2f9e74;border-color:#2f9e74;color:#fff}
+.gr[aria-pressed="true"].g2{background:#7fbf9f;border-color:#7fbf9f;color:#0f2a21}
+.gr[aria-pressed="true"].g3{background:#d9a945;border-color:#d9a945;color:#2a1d05}
+.gr[aria-pressed="true"].g4{background:#c8643a;border-color:#c8643a;color:#fff}
+.grades-box{display:flex;flex-direction:column;gap:8px}
+.gbar{display:flex;gap:3px;height:12px}
+.gbar i{flex:1 1 0;border-radius:6px}
+.g1.dot,.gbar .g1{background:#2f9e74}.g2.dot,.gbar .g2{background:#7fbf9f}.g3.dot,.gbar .g3{background:#d9a945}.g4.dot,.gbar .g4{background:#c8643a}.g0.dot,.gbar .g0{background:var(--line)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:baseline}
+.gsum,.glist{margin:0;font-size:14px;color:var(--muted)}
+.glist strong{color:var(--ink)}
+.weak{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.weak li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.weak button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px 9px;font-size:12px;color:var(--muted)}
+.weak-head{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+/* Sections */
+.sec{display:flex;flex-direction:column;gap:14px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sec-head h2{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.sec-head p{margin:0;color:var(--muted);font-size:14px}
+.lead{margin:0;color:var(--muted);font-size:15px;max-width:60ch}
+
+/* Ribbon */
+.ribbon{display:flex;gap:3px;height:38px}
+.seg{flex:1 1 0;min-width:0;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.seg.done{background:var(--accent);color:var(--surface)}
+.seg.now{box-shadow:inset 0 0 0 2px var(--gold)}
+.mushaf{position:relative;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.mushaf i{position:absolute;top:0;bottom:0;background:var(--accent)}
+.mushaf-cap{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+
+/* Week list */
+.week{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.day{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day.now{background:var(--accent-soft)}
+.d-name{font-family:var(--display);font-weight:700;font-size:17px;line-height:1.1}
+.d-date{display:block;font-family:var(--body);font-weight:400;font-size:12px;color:var(--muted)}
+.d-what{min-width:0;font-size:15px;overflow-wrap:anywhere}
+.d-what small{display:block;color:var(--muted);font-size:13px}
+.day.off .d-what{color:var(--muted)}
+button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
+.day.can-open{cursor:pointer}
+.d-what .d-hint{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.d-more{grid-column:1/-1;list-style:none;margin:2px 0 4px;padding:0;border-top:1px solid var(--line)}
+.d-more li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.d-more li:last-child{border-bottom:0}
+.d-more small{display:block;color:var(--muted);font-size:13px}
+.d-more .ar{font-size:19px;line-height:1.2;color:var(--muted);white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+.tag.open{background:var(--warn-soft);color:var(--warn)}
+.tick{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;color:transparent;font-size:18px;font-weight:700;line-height:1}
+.tick:hover{border-color:var(--accent)}
+.tick[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.tick.sm{width:30px;height:30px;font-size:14px;flex:none}
+.tick.part{color:var(--accent);border-color:var(--accent)}
+.seg.part{box-shadow:inset 0 -5px 0 var(--accent)}
+.seg.part.now{box-shadow:inset 0 -5px 0 var(--accent),inset 0 0 0 2px var(--gold)}
+.d-more li[data-act="item"]{cursor:pointer}
+.d-more .grow{flex:1;min-width:0}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500;min-width:44px;text-align:center}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"],.chip.full{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.chip.part{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.juz{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px}
+.juz .chip{padding:9px 0;min-width:0}
+.sub{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:6px 0 0}
+
+/* Surah list */
+.filter{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.filter::placeholder{color:var(--muted)}
+.surahs{background:var(--surface);border:1px solid var(--line);border-radius:16px;max-height:460px;overflow-y:auto}
+.surahs ul{list-style:none;margin:0;padding:0}
+.s-row{border-top:1px solid var(--line)}
+.s-row:first-child{border-top:0}
+.s-line{display:flex;align-items:center;gap:6px;padding-right:10px}
+.s-main{flex:1;min-width:0;display:grid;grid-template-columns:26px 34px 1fr auto;gap:10px;align-items:center;background:none;border:0;text-align:left;padding:10px 4px 10px 12px}
+.s-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;color:transparent;line-height:1}
+.s-row.full .s-box{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.s-row.part .s-box{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.s-no{color:var(--muted);font-size:13px}
+.s-name{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.s-name small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.s-main .ar{font-size:20px;line-height:1.2;color:var(--muted);white-space:nowrap}
+.s-more{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 9px;font-size:12px;color:var(--muted)}
+.s-more[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.pg{display:flex;flex-wrap:wrap;gap:6px;padding:4px 12px 14px 48px}
+.pg .chip{padding:4px 0;min-width:44px;font-size:13px}
+.wrap{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(56px,env(safe-area-inset-bottom))}
+.empty{padding:18px;color:var(--muted);font-size:14px}
+.bk{font-family:ui-monospace,Menlo,monospace;font-size:13px;resize:vertical;word-break:break-all}
+
+.settings{border-top:1px solid var(--line);padding-top:16px}
+.settings summary{cursor:pointer;font-family:var(--display);font-weight:700;font-size:18px}
+.settings summary:hover{color:var(--accent)}
+.settings-body{display:flex;flex-direction:column;gap:28px;margin-top:20px}
+.foot{color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:16px}
+.foot p{margin:0;max-width:65ch}
+@media (max-width:420px){
+  .today{padding:20px 18px}
+  .s-main{grid-template-columns:24px 26px 1fr auto;gap:8px}
+  .pg{padding-left:12px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .tick,.chip,.seg,.s-box{transition:background-color .15s,border-color .15s,color .15s}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="ar name" lang="ar">المراجعة الحورانية</span></h1>
+    <span class="date" id="date"></span>
+  </header>
+
+  <section class="today" id="today" aria-live="polite"></section>
+
+  <section class="learn" id="hifz" aria-live="polite"></section>
+
+  <section class="sec" aria-labelledby="h-week">
+    <div class="sec-head">
+      <h2 id="h-week">Diese Woche</h2>
+      <p id="week-sum"></p>
+    </div>
+    <div class="ribbon" id="ribbon" aria-hidden="true"></div>
+    <ul class="week" id="week"></ul>
+    <div class="sec-head"><h2 id="h-grades">Wie sitzen deine Suren?</h2></div>
+    <div id="grades" class="grades-box" aria-labelledby="h-grades"></div>
+    <div><button class="linkbtn" type="button" data-act="resetweek">Haken dieser Woche löschen</button></div>
+  </section>
+
+  <section class="learn" id="quiz" aria-live="polite"></section>
+
+  <section class="sec" aria-labelledby="h-calc">
+    <div class="sec-head"><h2 id="h-calc">Zielrechner</h2></div>
+    <p class="lead">Tippe ein Ziel und ein Datum ein. Die Seite rechnet aus, wie viel du pro Tag neu lernen musst, und zieht ab, was du schon kannst.</p>
+    <div class="fields">
+      <label for="c-goal">Ziel<select id="c-goal"></select></label>
+      <label for="c-pages" id="c-pages-wrap">Seiten<input id="c-pages" type="number" min="0.25" max="604" step="0.25" inputmode="decimal"></label>
+      <label for="c-until">Fertig bis<input id="c-until" type="date"></label>
+      <label for="c-dpw">Lerntage pro Woche<select id="c-dpw"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></label>
+    </div>
+    <div class="calc-out" id="calc-out" aria-live="polite"></div>
+  </section>
+
+  <details class="settings">
+  <summary>Plan ändern</summary>
+  <div class="settings-body">
+  <section class="sec" aria-labelledby="h-days">
+    <div class="sec-head"><h2 id="h-days">An welchen Tagen wiederholst du?</h2></div>
+    <p class="lead">Der Plan verteilt alles gleichmäßig auf die gewählten Tage. Ein freier Tag macht die anderen Portionen größer.</p>
+    <div class="chips" id="days"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-learn">
+    <div class="sec-head"><h2 id="h-learn">Was lernst du gerade neu?</h2></div>
+    <p class="lead">Eine Mushaf-Seite hat 15 Zeilen. Die Seite rechnet dein Ziel in Zeilen pro Tag um und passt die Menge an, wenn du mal mehr oder weniger schaffst.</p>
+    <div class="fields">
+      <label for="h-sura">Sure<select id="h-sura"></select></label>
+      <label for="h-pages">Seiten<input id="h-pages" type="number" min="0.25" max="50" step="0.25" inputmode="decimal"></label>
+      <label for="h-until">Fertig bis<input id="h-until" type="date"></label>
+    </div>
+    <div><button class="linkbtn" type="button" data-act="hifz-reset">Gelernte Zeilen auf 0 setzen</button></div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-sel">
+    <div class="sec-head">
+      <h2 id="h-sel">Was kannst du auswendig?</h2>
+      <p id="sel-sum"></p>
+    </div>
+    <div class="mushaf" id="mushaf" aria-hidden="true"></div>
+    <div class="mushaf-cap"><span>Seite 1</span><span>Deine Stellen im Mushaf</span><span>Seite 604</span></div>
+
+    <p class="sub">Ganze Juz</p>
+    <div class="juz" id="juz"></div>
+
+    <p class="sub">Einzelne Suren</p>
+    <input class="filter" id="filter" type="search" placeholder="Sure suchen: Name oder Nummer" autocomplete="off" aria-label="Sure suchen">
+    <div class="surahs" id="surahs"><ul id="surah-list"></ul></div>
+    <div><button class="linkbtn" type="button" data-act="clear">Auswahl leeren</button></div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-backup">
+    <div class="sec-head"><h2 id="h-backup">Daten übertragen</h2></div>
+    <p class="lead">So nimmst du deinen Plan auf ein anderes Gerät oder in die App mit: Tippe hier auf „Code kopieren“. Füge den Code auf dem anderen Gerät in das Feld ein und tippe auf „Übernehmen“.</p>
+    <div class="h-row"><button class="btn-acc" type="button" data-act="exp">Code kopieren</button></div>
+    <textarea id="bk" class="filter bk" rows="4" placeholder="Code hier einfügen" spellcheck="false" autocomplete="off" aria-label="Code für die Datenübertragung"></textarea>
+    <div class="h-row"><button class="chip" type="button" data-act="imp">Übernehmen</button></div>
+    <p id="bk-msg" class="lead" aria-live="polite"></p>
+  </section>
+
+  </div>
+  </details>
+
+  <footer class="foot">
+    <p id="sync">Dein Plan wird auf diesem Gerät gespeichert. Mit „Daten übertragen“ unter „Plan ändern“ nimmst du ihn auf ein anderes Gerät mit.</p>
+    <p>Der Korantext wird nicht von der Seite selbst geschrieben. Er kommt aus dem veröffentlichten Datensatz quran-json 3.1.2 oder aus deiner Tanzil-Datei.</p>
+    <p>Seitenzahlen nach dem Medina-Mushaf mit 604 Seiten. Wo mehrere kurze Suren auf einer Seite stehen, sind die Längen geschätzt.</p>
+  </footer>
+</div>
+
+<script type="module">
+window.__importJson=function(u){return import(u,{with:{type:"json"}}).then(function(m){return m.default;});};
+</script>
+<script>
+//<core>
+var SURAHS=[
+[1,"Al-Fatiha","الفاتحة"],[2,"Al-Baqara","البقرة"],[50,"Al Imran","آل عمران"],[77,"An-Nisa","النساء"],[106,"Al-Ma'ida","المائدة"],
+[128,"Al-An'am","الأنعام"],[151,"Al-A'raf","الأعراف"],[177,"Al-Anfal","الأنفال"],[187,"At-Tawba","التوبة"],[208,"Yunus","يونس"],
+[221,"Hud","هود"],[235,"Yusuf","يوسف"],[249,"Ar-Ra'd","الرعد"],[255,"Ibrahim","إبراهيم"],[262,"Al-Hijr","الحجر"],
+[267,"An-Nahl","النحل"],[282,"Al-Isra","الإسراء"],[293,"Al-Kahf","الكهف"],[305,"Maryam","مريم"],[312,"Ta-Ha","طه"],
+[322,"Al-Anbiya","الأنبياء"],[332,"Al-Hajj","الحج"],[342,"Al-Mu'minun","المؤمنون"],[350,"An-Nur","النور"],[359,"Al-Furqan","الفرقان"],
+[367,"Ash-Shu'ara","الشعراء"],[377,"An-Naml","النمل"],[385,"Al-Qasas","القصص"],[396,"Al-Ankabut","العنكبوت"],[404,"Ar-Rum","الروم"],
+[411,"Luqman","لقمان"],[415,"As-Sajda","السجدة"],[418,"Al-Ahzab","الأحزاب"],[428,"Saba","سبأ"],[434,"Fatir","فاطر"],
+[440,"Ya-Sin","يس"],[446,"As-Saffat","الصافات"],[453,"Sad","ص"],[458,"Az-Zumar","الزمر"],[467,"Ghafir","غافر"],
+[477,"Fussilat","فصلت"],[483,"Ash-Shura","الشورى"],[489,"Az-Zukhruf","الزخرف"],[496,"Ad-Dukhan","الدخان"],[499,"Al-Jathiya","الجاثية"],
+[502,"Al-Ahqaf","الأحقاف"],[507,"Muhammad","محمد"],[511,"Al-Fath","الفتح"],[515,"Al-Hujurat","الحجرات"],[518,"Qaf","ق"],
+[520,"Adh-Dhariyat","الذاريات"],[523,"At-Tur","الطور"],[526,"An-Najm","النجم"],[528,"Al-Qamar","القمر"],[531,"Ar-Rahman","الرحمن"],
+[534,"Al-Waqi'a","الواقعة"],[537,"Al-Hadid","الحديد"],[542,"Al-Mujadila","المجادلة"],[545,"Al-Hashr","الحشر"],[549,"Al-Mumtahana","الممتحنة"],
+[551,"As-Saff","الصف"],[553,"Al-Jumu'a","الجمعة"],[554,"Al-Munafiqun","المنافقون"],[556,"At-Taghabun","التغابن"],[558,"At-Talaq","الطلاق"],
+[560,"At-Tahrim","التحريم"],[562,"Al-Mulk","الملك"],[564,"Al-Qalam","القلم"],[566,"Al-Haqqa","الحاقة"],[568,"Al-Ma'arij","المعارج"],
+[570,"Nuh","نوح"],[572,"Al-Jinn","الجن"],[574,"Al-Muzzammil","المزمل"],[575,"Al-Muddaththir","المدثر"],[577,"Al-Qiyama","القيامة"],
+[578,"Al-Insan","الإنسان"],[580,"Al-Mursalat","المرسلات"],[582,"An-Naba","النبأ"],[583,"An-Nazi'at","النازعات"],[585,"Abasa","عبس"],
+[586,"At-Takwir","التكوير"],[587,"Al-Infitar","الانفطار"],[587,"Al-Mutaffifin","المطففين"],[589,"Al-Inshiqaq","الانشقاق"],[590,"Al-Buruj","البروج"],
+[591,"At-Tariq","الطارق"],[591,"Al-A'la","الأعلى"],[592,"Al-Ghashiya","الغاشية"],[593,"Al-Fajr","الفجر"],[594,"Al-Balad","البلد"],
+[595,"Ash-Shams","الشمس"],[595,"Al-Layl","الليل"],[596,"Ad-Duha","الضحى"],[596,"Ash-Sharh","الشرح"],[597,"At-Tin","التين"],
+[597,"Al-Alaq","العلق"],[598,"Al-Qadr","القدر"],[598,"Al-Bayyina","البينة"],[599,"Az-Zalzala","الزلزلة"],[599,"Al-Adiyat","العاديات"],
+[600,"Al-Qari'a","القارعة"],[600,"At-Takathur","التكاثر"],[601,"Al-Asr","العصر"],[601,"Al-Humaza","الهمزة"],[601,"Al-Fil","الفيل"],
+[602,"Quraysh","قريش"],[602,"Al-Ma'un","الماعون"],[602,"Al-Kawthar","الكوثر"],[603,"Al-Kafirun","الكافرون"],[603,"An-Nasr","النصر"],
+[603,"Al-Masad","المسد"],[604,"Al-Ikhlas","الإخلاص"],[604,"Al-Falaq","الفلق"],[604,"An-Nas","الناس"]];
+var NS=SURAHS.length, LAST=605;
+
+// Where each surah starts on the page line 1..605 (surahs sharing a start page split it evenly).
+var pos=[];
+(function(){
+  for(var i=0;i<NS;){
+    var j=i; while(j<NS&&SURAHS[j][0]===SURAHS[i][0]) j++;
+    for(var m=i;m<j;m++) pos[m]=SURAHS[i][0]+(m-i)/(j-i);
+    i=j;
+  }
+  pos[NS]=LAST;
+})();
+
+// Atoms: smallest pieces the plan can cut at (page edges and surah starts).
+var atoms=[], surahAtoms=[];
+(function(){
+  var bp=[],seen={};
+  function add(x){var k=x.toFixed(6); if(!seen[k]){seen[k]=1;bp.push(x);}}
+  for(var p=1;p<=LAST;p++) add(p);
+  for(var i=0;i<=NS;i++) add(pos[i]);
+  bp.sort(function(a,b){return a-b;});
+  var s=0;
+  for(var k=0;k<bp.length-1;k++){
+    var a=bp[k],b=bp[k+1];
+    while(s+1<NS&&pos[s+1]<=a+1e-9) s++;
+    if(!surahAtoms[s]) surahAtoms[s]=[atoms.length,atoms.length];
+    surahAtoms[s][1]=atoms.length;
+    atoms.push({a:a,b:b,len:b-a,surah:s,page:Math.floor(a+1e-9)});
+  }
+})();
+var sel=new Uint8Array(atoms.length);
+
+function juzRange(n){return [n===1?1:2+(n-1)*20, n===30?LAST:2+n*20];}
+function atomsWhere(fn){var out=[];for(var i=0;i<atoms.length;i++) if(fn(atoms[i],i)) out.push(i);return out;}
+function stateOf(list){var c=0;for(var i=0;i<list.length;i++) if(sel[list[i]]) c++;return c===0?"none":c===list.length?"full":"part";}
+function setAll(list,v){for(var i=0;i<list.length;i++) sel[list[i]]=v;}
+function toRuns(){var r=[],st=-1;for(var i=0;i<=sel.length;i++){var on=i<sel.length&&sel[i];if(on&&st<0)st=i;if(!on&&st>=0){r.push([st,i-1]);st=-1;}}return r;}
+function fromRuns(r){sel.fill(0);(r||[]).forEach(function(x){for(var i=Math.max(0,x[0]);i<=Math.min(sel.length-1,x[1]);i++) sel[i]=1;});}
+
+// Split a list of atoms (in mushaf order) into k parts, as even as possible,
+// preferring to cut where a surah begins. Returns exactly k arrays; trailing ones may be empty.
+function splitEven(idx,k){
+  var parts=[];for(var z=0;z<k;z++) parts.push([]);
+  if(!idx.length||k<1) return parts;
+  var cum=[0];idx.forEach(function(i){cum.push(cum[cum.length-1]+atoms[i].len);});
+  var total=cum[cum.length-1],n=Math.min(k,idx.length),cuts=[0],tol=Math.min(1,total/n*0.2);
+  for(var c=1;c<n;c++){
+    var target=total*c/n,best=-1,bestScore=Infinity;
+    for(var b=cuts[c-1]+1;b<=idx.length-(n-c);b++){
+      var diff=Math.abs(cum[b]-target);
+      var fresh=atoms[idx[b]].surah!==atoms[idx[b-1]].surah||idx[b]!==idx[b-1]+1;
+      var score=diff-(fresh&&diff<=tol?tol:0);
+      if(score<bestScore){bestScore=score;best=b;}
+      if(cum[b]-target>tol) break;
+    }
+    cuts.push(best);
+  }
+  cuts.push(idx.length);
+  for(var q=0;q<n;q++) parts[q]=idx.slice(cuts[q],cuts[q+1]);
+  return parts;
+}
+function lenOf(list){var x=0;for(var i=0;i<list.length;i++) x+=atoms[list[i]].len;return x;}
+// The fixed weekly plan: one portion per active weekday.
+function buildPlan(days){
+  var idx=atomsWhere(function(t,i){return sel[i];});
+  var active=[];for(var d=0;d<7;d++) if(days[d]) active.push(d);
+  var byDay=[null,null,null,null,null,null,null];
+  if(!idx.length||!active.length) return {total:0,byDay:byDay,active:active,count:idx.length};
+  splitEven(idx,active.length).forEach(function(part,q){if(part.length) byDay[active[q]]={atoms:part,pages:lenOf(part)};});
+  return {total:lenOf(idx),byDay:byDay,active:active,count:idx.length};
+}
+// The week as it stands: rev[atom]=weekday it was revised. Whatever earlier days left open
+// is spread again over today and the remaining active days.
+function weekPlan(days,rev,t){
+  var base=buildPlan(days),rest=base.active.filter(function(d){return d>=t;});
+  var pool=atomsWhere(function(a,i){return sel[i]&&!(rev[i]!==undefined&&rev[i]<t);});
+  var todayList=null,future=rest.slice();
+  if(rest.length&&rest[0]===t){todayList=splitEven(pool,rest.length)[0];future=rest.slice(1);}
+  else if(!rest.length) todayList=pool.slice();
+  var inToday={};(todayList||[]).forEach(function(i){inToday[i]=1;});
+  var fparts=future.length?splitEven(pool.filter(function(i){return !inToday[i]&&rev[i]===undefined;}),future.length):[];
+  var out=[];
+  for(var d=0;d<7;d++){
+    var list;
+    if(d<=t){
+      var m={};((d<t?(base.byDay[d]&&base.byDay[d].atoms):todayList)||[]).forEach(function(i){m[i]=1;});
+      for(var i=0;i<atoms.length;i++) if(sel[i]&&rev[i]===d) m[i]=1;
+      list=Object.keys(m).map(Number).sort(function(a,b){return a-b;});
+    }else list=fparts[future.indexOf(d)]||[];
+    out.push(list.length?{atoms:list,pages:lenOf(list),donePages:lenOf(list.filter(function(i){return rev[i]!==undefined;}))}:null);
+  }
+  var all=atomsWhere(function(a,i){return sel[i];});
+  return {days:out,base:base,total:lenOf(all),done:lenOf(all.filter(function(i){return rev[i]!==undefined;}))};
+}
+function pageSpan(first,last){var a=atoms[first].page,b=atoms[last].page;return a===b?"S. "+a:"S. "+a+"–"+b;}
+// Turn a portion into readable lines: whole surahs, runs of whole surahs, or page ranges.
+function describe(list,flat){
+  var groups=[];
+  list.forEach(function(i){
+    var g=groups[groups.length-1];
+    if(g&&g.s===atoms[i].surah&&g.last===i-1) g.last=i; else groups.push({s:atoms[i].surah,first:i,last:i});
+  });
+  groups.forEach(function(g){g.whole=g.first===surahAtoms[g.s][0]&&g.last===surahAtoms[g.s][1];});
+  var out=[],i=0;
+  while(i<groups.length){
+    var g=groups[i];
+    if(g.whole){
+      var j=i;while(j+1<groups.length&&groups[j+1].whole&&groups[j+1].s===groups[j].s+1) j++;
+      if(!flat&&j-i>=2){
+        out.push({title:SURAHS[g.s][1]+" bis "+SURAHS[groups[j].s][1],ar:"",sub:(j-i+1)+" Suren · "+pageSpan(g.first,groups[j].last),first:g.first,last:groups[j].last});
+        i=j+1;continue;
+      }
+      out.push({title:SURAHS[g.s][1],ar:SURAHS[g.s][2],sub:"ganze Sure · "+pageSpan(g.first,g.last),first:g.first,last:g.last});
+    }else{
+      out.push({title:SURAHS[g.s][1],ar:SURAHS[g.s][2],sub:"Teil · "+pageSpan(g.first,g.last),first:g.first,last:g.last});
+    }
+    i++;
+  }
+  return out;
+}
+function fmt(x){var r=Math.round(x*2)/2;if(r<1) return "unter 1";return String(r).replace(".",",");}
+function fmt0(x){return x<1e-6?"0":fmt(x);}
+function pagesWord(x){var r=Math.round(x*2)/2;return fmt(x)+(r===1?" Seite":" Seiten");}
+// Number of ayat per surah (Kufan count, 6236 in total).
+var AY=[7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
+//</core>
+
+var DAYS=["Mo","Di","Mi","Do","Fr","Sa","So"];
+var DAYS_LONG=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+var KEY="muraja-v2";
+var $=function(id){return document.getElementById(id);};
+
+function todayIdx(){return (new Date().getDay()+6)%7;}
+function monday(){var d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-todayIdx());return d;}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function weekId(){return iso(monday());}
+function defaultHifz(){var d=monday();d.setDate(d.getDate()+6);return {s:59,pages:1.5,until:iso(d),learned:0,day:"",today:0};}
+// How many lines to learn today so the goal is reached by the deadline.
+function hifzCalc(){
+  var h=state.hifz,now=new Date();now.setHours(12,0,0,0);
+  var t=iso(now),total=Math.max(1,Math.ceil(h.pages*15)),learned=Math.min(Math.max(0,h.learned),total),rem=total-learned;
+  var end=new Date(h.until+"T12:00:00"),diff=isNaN(end)?0:Math.round((end-now)/864e5);
+  var days=Math.max(1,diff+1),logged=h.day===t?h.today:0;
+  var target=Math.ceil((rem+logged)/days);
+  return {t:t,total:total,learned:learned,rem:rem,days:days,late:diff<0,logged:logged,set:h.day===t,target:target,todo:Math.max(0,Math.min(rem,target-logged)),end:end};
+}
+
+var state={days:[true,true,true,true,true,true,false],week:weekId(),done:{},example:false,t:0,hifz:null};
+state.hifz=defaultHifz();
+function defaultCalc(){return {goal:"j28",pages:5,until:new Date().getFullYear()+"-12-31",dpw:6};}
+state.calc=defaultCalc();
+state.quiz={weak:[],hist:[],scope:"today"};
+state.grade={};
+state.rev={};
+var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false};
+setAll(atomsWhere(function(t){return t.surah>=60;}),1); // start: As-Saff (61) bis An-Nas (114)
+
+function revRuns(){
+  var r=[],cur=null;
+  for(var i=0;i<atoms.length;i++){
+    var d=state.rev[i];
+    if(d===undefined){cur=null;continue;}
+    if(cur&&cur[2]===d&&cur[1]===i-1) cur[1]=i; else{cur=[i,i,d];r.push(cur);}
+  }
+  return r;
+}
+function serialize(){return {v:2,sel:toRuns(),days:state.days,week:state.week,rev:revRuns(),grade:state.grade,example:state.example,t:state.t,hifz:state.hifz,calc:state.calc,quiz:state.quiz};}
+function adopt(o){
+  if(!o||!Array.isArray(o.sel)) return false;
+  fromRuns(o.sel);
+  state.days=Array.isArray(o.days)&&o.days.length===7?o.days.map(Boolean):state.days;
+  state.week=typeof o.week==="string"?o.week:weekId();
+  state.done=o.done&&typeof o.done==="object"?Object.assign({},o.done):{};
+  state.example=!!o.example; state.t=o.t||0;
+  state.grade={};
+  if(o.grade&&typeof o.grade==="object") Object.keys(o.grade).forEach(function(k){
+    var v=o.grade[k],s=+k;if(s>=0&&s<NS&&v&&v.g>=1&&v.g<=4) state.grade[s]={g:v.g|0,d:typeof v.d==="string"?v.d:""};
+  });
+  state.rev={};
+  (Array.isArray(o.rev)?o.rev:[]).forEach(function(r){
+    if(!Array.isArray(r)||!(r[2]>=0&&r[2]<=6)) return;
+    for(var i=Math.max(0,r[0]|0);i<=Math.min(atoms.length-1,r[1]|0);i++) state.rev[i]=r[2]|0;
+  });
+  var w=o.quiz&&Array.isArray(o.quiz.weak)?o.quiz.weak:[];
+  state.quiz={scope:o.quiz&&o.quiz.scope==="all"?"all":"today",weak:w.filter(function(x){return x&&/^(mid|end|link|full)$/.test(x.type)&&x.s>=0&&x.s<NS&&x.n>=0;}).slice(0,30).map(function(x){return {type:x.type,s:x.s|0,n:x.n|0,lvl:x.lvl>=2?2:1};}),
+    hist:(o.quiz&&Array.isArray(o.quiz.hist)?o.quiz.hist:[]).filter(function(x){return x&&typeof x.d==="string"&&x.s>=0&&x.s<NS&&x.r>=0&&x.r<=2;}).slice(-200).map(function(x){return {d:x.d,s:x.s|0,r:x.r|0};})};
+  var c=o.calc,dc=defaultCalc();
+  state.calc=c&&typeof c==="object"?{goal:/^[js]\d+$|^x$/.test(c.goal)?c.goal:dc.goal,pages:c.pages>0?+c.pages:dc.pages,until:typeof c.until==="string"?c.until:dc.until,dpw:c.dpw>=1&&c.dpw<=7?c.dpw|0:dc.dpw}:dc;
+  var h=o.hifz,dh=defaultHifz();
+  state.hifz=h&&typeof h==="object"?{s:h.s>=0&&h.s<NS?h.s|0:dh.s,pages:h.pages>0?+h.pages:dh.pages,until:typeof h.until==="string"?h.until:dh.until,learned:+h.learned||0,day:typeof h.day==="string"?h.day:"",today:+h.today||0}:dh;
+  rollWeek();
+  return true;
+}
+function rollWeek(){if(state.week!==weekId()){state.week=weekId();state.done={};state.rev={};}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
+try{var raw=localStorage.getItem(KEY);if(raw) adopt(JSON.parse(raw));}catch(e){}
+
+/* ---- account sync (optional; the page works without it) ---- */
+var ref=null,writing=false,dirty=false,timer=null;
+function setSync(mode){
+  $("sync").textContent=mode==="account"
+    ?"Dein Plan ist in deinem Konto gespeichert und erscheint auch auf deinen anderen Geräten."
+    :"Dein Plan wird nur in diesem Browser gespeichert.";
+}
+function scheduleRemote(){if(!ref) return;clearTimeout(timer);timer=setTimeout(flush,900);}
+function flush(){
+  if(!ref) return;
+  if(writing){dirty=true;return;}
+  writing=true;
+  ref.set({json:JSON.stringify(serialize()),t:state.t}).catch(function(e){
+    if(e&&e.code!=="unavailable"){ref=null;setSync("local");}
+  }).then(function(){writing=false;if(dirty){dirty=false;flush();}});
+}
+function pull(){
+  if(!ref||writing||timer&&dirty) return Promise.resolve();
+  return ref.get().then(function(snap){
+    if(snap.exists){
+      var d=snap.data(),remote=null;
+      try{remote=JSON.parse(d.json);}catch(e){}
+      if(remote&&(state.example||(remote.t||0)>(state.t||0))){ if(adopt(remote)){saveLocal();render();} }
+      else if(!state.example&&(state.t||0)>((remote&&remote.t)||0)) scheduleRemote();
+    }else if(state.t>0) scheduleRemote();
+  });
+}
+function initSync(){
+  if(!window.claude||typeof window.claude.use!=="function") return;
+  Promise.all([window.claude.use("user"),window.claude.use("db")]).then(function(r){
+    var user=r[0],db=r[1];
+    if(!user||!db) return;
+    return user.id().then(function(uid){
+      if(!uid) return;
+      ref=db.doc("data/users/"+uid+"/muraja2");
+      return pull().then(function(){if(ref) setSync("account");});
+    });
+  }).catch(function(){ref=null;setSync("local");});
+}
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"){var w=state.week;rollWeek();if(w!==state.week){saveLocal();render();}pull().catch(function(){});}
+});
+
+function commit(){state.t=Date.now();state.example=false;saveLocal();scheduleRemote();render();}
+
+/* ---- rendering ---- */
+function nowPlan(){return weekPlan(state.days,state.rev,todayIdx());}
+function itemState(x){var c=0,n=x.last-x.first+1;for(var i=x.first;i<=x.last;i++) if(state.rev[i]!==undefined) c++;return c===0?"none":c===n?"full":"part";}
+function mark(st){return st==="full"?"✓":st==="part"?"–":"";}
+var GRADES=[null,"Stark","Gut","Mittel","Schwach"];
+// Rating buttons for one surah row; tapping one also ticks the row as revised.
+function gradeRow(x,d){
+  var s=atoms[x.first].surah,cur=state.grade[s]?state.grade[s].g:0,h='<span class="grades" role="group" aria-label="Wie lief '+x.title+'?">';
+  for(var g=1;g<=4;g++) h+='<button class="gr g'+g+'" type="button" data-act="grade" data-s="'+s+'" data-g="'+g+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'" aria-pressed="'+(cur===g)+'">'+GRADES[g]+'</button>';
+  return h+'</span>';
+}
+function renderGrades(){
+  var mem=allPool(),by={1:[],2:[],3:[],4:[]},none=0;
+  mem.forEach(function(s){var v=state.grade[s];if(v) by[v.g].push(s); else none++;});
+  var h='';
+  if(mem.length){
+    h+='<div class="gbar" role="img" aria-label="Bewertung deiner Suren">';
+    for(var g=1;g<=4;g++) if(by[g].length) h+='<i class="g'+g+'" style="flex-grow:'+by[g].length+'"></i>';
+    if(none) h+='<i class="g0" style="flex-grow:'+none+'"></i>';
+    h+='</div><p class="gsum num">';
+    var parts=[];for(var g2=1;g2<=4;g2++) parts.push('<span class="dot g'+g2+'"></span>'+GRADES[g2]+' '+by[g2].length);
+    parts.push('<span class="dot g0"></span>Noch nicht bewertet '+none);
+    h+=parts.join(" &nbsp; ")+'</p>';
+    [4,3].forEach(function(g){
+      if(by[g].length) h+='<p class="glist"><strong>'+GRADES[g]+':</strong> '+by[g].map(function(s){return SURAHS[s][1];}).join(", ")+'</p>';
+    });
+    if(!by[3].length&&!by[4].length) h+='<p class="glist">Noch keine schwachen Suren. Bewerte beim Abhaken, wie es lief.</p>';
+    else h+='<p class="glist">Schwache und mittlere Suren kommen in der Abfrage öfter dran.</p>';
+  }
+  $("grades").innerHTML=h;
+}
+function renderToday(plan,wp){
+  var t=todayIdx(),p=wp.days[t],el=$("today"),h='<div class="eyebrow">Heute · '+DAYS_LONG[t]+'</div>';
+  var open=[];for(var d=0;d<t;d++){var q=wp.days[d];if(q&&state.days[d]&&q.donePages<q.pages-1e-6) open.push(DAYS_LONG[d]);}
+  var left=p?p.pages-p.donePages:0,done=!!p&&left<1e-6;
+  el.className="today"+(done?" is-done":"");
+  if(!plan.count){
+    h+='<h2>Noch nichts ausgewählt</h2><div class="amount">Markiere unter „Plan ändern“, was du auswendig kannst. Daraus entsteht dein Wochenplan.</div>';
+  }else if(!plan.active.length){
+    h+='<h2>Kein Wochentag gewählt</h2><div class="amount">Wähle unter „Plan ändern“ mindestens einen Tag für deine Wiederholung.</div>';
+  }else if(!p){
+    h+='<h2>Heute ist frei</h2><div class="amount">Für heute steht nichts im Plan.</div>';
+  }else{
+    h+='<h2>'+(done?"Für heute erledigt":(p.donePages>1e-6?"Heute noch ":"")+pagesWord(left)+" wiederholen")+'</h2>';
+    h+='<ul class="portion">'+describe(p.atoms,true).map(function(x){
+      var st=itemState(x);
+      return '<li data-act="item" data-d="'+t+'" data-a="'+x.first+'" data-b="'+x.last+'"><button class="itick'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>'+
+        '<span class="p-name">'+x.title+'<span class="p-sub">'+x.sub+'</span>'+gradeRow(x,t)+'</span>'+(x.ar?'<span class="ar" lang="ar">'+x.ar+'</span>':'')+'</li>';
+    }).join("")+'</ul>';
+    if(!done) h+='<button class="btn-main" type="button" data-act="dayall" data-d="'+t+'">Alles von heute erledigt</button>';
+  }
+  if(open.length) h+='<div class="note">Von '+open.join(", ")+' ist noch etwas offen. Der Rest ist schon auf heute und die nächsten Tage verteilt. Hast du an dem Tag doch etwas gemacht, hake es unter „Diese Woche“ an.</div>';
+  el.innerHTML=h;
+}
+function linesWord(n){return n+(n===1?" Zeile":" Zeilen");}
+function renderHifz(){
+  var h=state.hifz,c=hifzCalc(),html='<div class="eyebrow">Neu lernen · '+SURAHS[h.s][1]+'</div>';
+  var until=isNaN(c.end)?"":c.end.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"numeric"});
+  var goal="Ziel: "+pagesWord(h.pages)+" ("+linesWord(c.total)+")"+(until?" bis "+until:"")+".";
+  if(c.rem===0&&!c.set){
+    html+='<h2>Ziel erreicht</h2><p>'+goal+' Nimm die Sure unter „Plan ändern“ in deine Wiederholung auf und setz dir ein neues Ziel.</p>';
+  }else{
+    html+='<h2>'+(c.set?"Heute "+linesWord(c.logged)+" gelernt":"Heute "+linesWord(c.target)+" neu")+'</h2>';
+    html+='<p>'+goal+' Noch '+linesWord(c.rem)+(c.late?", die Frist ist vorbei.":" in "+(c.days===1?"1 Tag":c.days+" Tagen")+".")+'</p>';
+  }
+  html+='<div class="bar" role="img" aria-label="'+c.learned+' von '+c.total+' Zeilen gelernt"><i style="width:'+(c.learned/c.total*100).toFixed(1)+'%"></i></div>';
+  html+='<p class="num">'+c.learned+' von '+linesWord(c.total)+' gelernt</p>';
+  if(c.rem>0||c.set){
+    var max=Math.min(c.rem+c.logged,Math.max(c.target+2,c.logged,4));
+    html+='<p><strong>Wie viele Zeilen hast du heute geschafft?</strong></p><div class="h-row">';
+    for(var n=0;n<=max;n++){
+      var on=c.set&&c.logged===n;
+      html+='<button class="chip num'+(n===c.target&&!on?' goal':'')+'" type="button" data-act="hifz-set" data-n="'+n+'" aria-pressed="'+on+'">'+(n===0?"Gar nicht":n)+'</button>';
+    }
+    html+='</div>';
+    if(c.set){
+      var restDays=c.days-1;
+      html+='<p class="hint">'+(c.rem===0?"Ziel erreicht. Nimm die Sure unter „Plan ändern“ in deine Wiederholung auf."
+        :restDays>0?"Ab morgen: "+linesWord(Math.ceil(c.rem/restDays))+" pro Tag, dann schaffst du es bis "+until+"."
+        :"Heute ist der letzte Tag. Es fehlen noch "+linesWord(c.rem)+".")+'</p>';
+    }else html+='<p>Das umrandete Feld ist dein Ziel für heute. Wähl einfach, was du wirklich geschafft hast; der Rest wird auf die nächsten Tage verteilt.</p>';
+  }
+  html+='<div>';
+  $("hifz").innerHTML=html+'</div>';
+  var a=document.activeElement;
+  if(a!==$("h-sura")) $("h-sura").value=String(h.s);
+  if(a!==$("h-pages")) $("h-pages").value=String(h.pages);
+  if(a!==$("h-until")) $("h-until").value=h.until;
+}
+/* ---- quiz: random spots inside what is memorized; shaky ones come back more often ---- */
+function rnd(n){return Math.floor(Math.random()*n);}
+function qKey(q){return q.type+":"+q.s+":"+q.n;}
+function allPool(){var o=[];for(var i=0;i<NS;i++) if(stateOf(surahList(i))==="full") o.push(i);return o;}
+// Surahs of today's revision portion (whole ones first; if a long surah is split, the ones touched).
+function todaySurahs(){
+  var p=nowPlan().days[todayIdx()];if(!p) return null;
+  var inP={},whole=[],touch=[];p.atoms.forEach(function(i){inP[i]=1;});
+  for(var s=0;s<NS;s++){
+    var l=surahList(s),c=l.filter(function(i){return inP[i];}).length;
+    if(c===l.length) whole.push(s); else if(c) touch.push(s);
+  }
+  return whole.length?whole:touch.length?touch:null;
+}
+function quizPool(){
+  var all=allPool();
+  if(state.quiz.scope!=="all"){var t=todaySurahs();if(t){var x=t.filter(function(s){return all.indexOf(s)>=0;});return x.length?x:t;}}
+  return all;
+}
+function pageFull(p){var l=atomsWhere(function(t){return t.page===p;});return l.length>0&&stateOf(l)==="full";}
+function newQuestion(avoid){
+  var pool=quizPool(),all=allPool(),wp0=[];
+  pool.forEach(function(s){var g=state.grade[s]?state.grade[s].g:0;wp0.push(s);if(g>=3) wp0.push(s);if(g===4){wp0.push(s);wp0.push(s);}});
+  var w=state.quiz.weak.filter(function(x){return pool.indexOf(x.s)>=0;});
+  for(var tries=0;tries<40;tries++){
+    var q=null;
+    if(w.length&&Math.random()<0.5){var x=w[rnd(w.length)];q={type:x.type,s:x.s,n:x.n};}
+    else if(pool.length){
+      var type=["mid","mid","end","link","full"][rnd(5)],s=wp0[rnd(wp0.length)];
+      if(type==="mid"&&AY[s]>=8) q={type:type,s:s,n:2+rnd(AY[s]-5)};
+      else if(type==="end"&&AY[s]>=10) q={type:type,s:s,n:0};
+      else if(type==="link"&&all.indexOf(s+1)>=0) q={type:type,s:s,n:0};
+      else if(type==="full"&&AY[s]<=40) q={type:type,s:s,n:0};
+    }
+    if(q&&qKey(q)!==avoid) return q;
+  }
+  return null;
+}
+function qText(q){
+  var name=SURAHS[q.s][1];
+  if(q.type==="mid") return {title:name+", Aya "+q.n,body:"Schlag die Aya auf und lies nur die ersten zwei, drei Wörter. Klapp den Mushaf zu und rezitiere von dort "+Math.min(5,AY[q.s]-q.n+1)+" Ayat weiter."};
+  if(q.type==="end") return {title:"Ende von "+name,body:"Rezitiere die letzten 5 Ayat, ohne vorher hineinzuschauen. Prüfe danach im Mushaf."};
+  if(q.type==="link") return {title:"Übergang nach "+name,body:"Rezitiere die letzte Aya von "+name+" und direkt weiter die ersten 3 Ayat der nächsten Sure, ohne nachzuschauen, welche Sure das ist."};
+  if(q.type==="full") return {title:"Ganze Sure "+name,body:"Rezitiere die ganze Sure von Anfang bis Ende und prüfe danach im Mushaf."};
+  return {title:"Seite "+q.n+" ("+name+")",body:"Mit welchen Wörtern beginnt diese Seite? Rezitiere sie von oben bis unten und prüfe danach im Mushaf."};
+}
+/* ---- Quran text: never typed in here. It comes from the published quran-json package,
+        from a quran.txt published next to this page, or from a Tanzil file the viewer picks. ---- */
+var TEXT={},textTry={},textAsked={},textFail={},textMsg="";
+function bare(w){return w.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g,"").replace(/\u0671/g,"\u0627");}
+function setSurah(s,arr){
+  if(!(s>=0&&s<NS)||arr.length!==AY[s]) return false;
+  arr=arr.map(function(x){return String(x||"").trim();});
+  if(arr.some(function(x){return !x;})) return false;
+  if(s!==0){var w=arr[0].split(/\s+/);if(w.length>4&&bare(w[0])==="\u0628\u0633\u0645") arr[0]=w.slice(4).join(" ");}
+  TEXT[s]=arr;return true;
+}
+// Tanzil "Text (with aya numbers)": one line per aya, "sura|aya|text".
+function parseTanzil(str){
+  var by={},n=0;
+  String(str).split(/\r?\n/).forEach(function(line){
+    var m=/^(\d+)\|(\d+)\|(.+)$/.exec(line.trim());
+    if(m){var su=+m[1]-1;(by[su]=by[su]||[])[+m[2]-1]=m[3];}
+  });
+  Object.keys(by).forEach(function(k){if(setSurah(+k,by[k])) n++;});
+  return n;
+}
+function pageReady(){return new Promise(function(r){if(document.readyState==="complete") r();else window.addEventListener("load",function(){r();});});}
+function loadSurah(s){
+  if(TEXT[s]) return Promise.resolve(true);
+  if(!textTry[s]) textTry[s]=pageReady().then(function(){
+    if(TEXT[s]) return true;
+    if(typeof window.__importJson!=="function") return false;
+    return window.__importJson("https://cdn.jsdelivr.net/npm/quran-json@3.1.2/dist/chapters/"+(s+1)+".json").then(function(d){
+      var v=d&&(Array.isArray(d)?d:d.verses);
+      if(!Array.isArray(v)) return false;
+      return setSurah(s,v.map(function(x){return typeof x==="string"?x:(x&&x.text)||"";}));
+    });
+  }).catch(function(){return false;});
+  return textTry[s];
+}
+function firstWords(t){var w=t.split(/\s+/);return w.length<=2?w[0]:w.slice(0,2).join(" ");}
+// The aya a question starts from (none for whole-page questions).
+function qStart(q){
+  if(q.type==="mid") return {s:q.s,n:q.n};
+  if(q.type==="end") return {s:q.s,n:AY[q.s]-4};
+  if(q.type==="link") return {s:q.s,n:AY[q.s]};
+  if(q.type==="full") return {s:q.s,n:1};
+  return null;
+}
+// Everything a question asks for, aya by aya, so the answer can be checked.
+function passage(q){
+  var out=[],i;
+  if(q.type==="mid"){for(i=q.n;i<=Math.min(q.n+4,AY[q.s]);i++) out.push([q.s,i]);}
+  else if(q.type==="end"){for(i=AY[q.s]-4;i<=AY[q.s];i++) out.push([q.s,i]);}
+  else if(q.type==="full"){for(i=1;i<=AY[q.s];i++) out.push([q.s,i]);}
+  else if(q.type==="link"){out.push([q.s,AY[q.s]]);for(i=1;i<=Math.min(3,AY[q.s+1]);i++) out.push([q.s+1,i]);}
+  return out;
+}
+function passageHtml(q){
+  var list=passage(q);
+  if(!list.every(function(x){return TEXT[x[0]];})) return '<p class="hint">Der Text der nächsten Sure lädt noch oder fehlt.</p>';
+  var h='<div class="passage" lang="ar" dir="rtl">',last=q.s;
+  list.forEach(function(x){
+    if(x[0]!==last){h+='<div class="p-head" lang="de" dir="ltr">'+SURAHS[x[0]][1]+'</div>';last=x[0];}
+    h+='<p>'+TEXT[x[0]][x[1]-1]+' <span class="an" dir="ltr">'+x[1]+'</span></p>';
+  });
+  return h+'</div>';
+}
+// Overview of today's answers and the surahs with the most misses.
+function statsHtml(){
+  var hist=state.quiz.hist;if(!hist.length) return "";
+  var t=iso(new Date()),c=[0,0,0],by={};
+  hist.forEach(function(x){
+    if(x.d===t) c[x.r]++;
+    var b=by[x.s]=by[x.s]||{s:x.s,all:0,miss:0};b.all++;if(x.r>0) b.miss++;
+  });
+  var n=c[0]+c[1]+c[2],h='<div class="weak-head">Übersicht heute</div>';
+  if(n){
+    h+='<p class="num">'+(n===1?"1 Frage":n+" Fragen")+': '+c[0]+' sicher, '+c[1]+' wackelig, '+c[2]+' nicht gekonnt</p>'+
+      '<div class="bar3" role="img" aria-label="'+c[0]+' sicher, '+c[1]+' wackelig, '+c[2]+' nicht gekonnt">'+
+      (c[0]?'<i class="ok" style="flex-grow:'+c[0]+'"></i>':'')+(c[1]?'<i class="mid" style="flex-grow:'+c[1]+'"></i>':'')+(c[2]?'<i class="bad" style="flex-grow:'+c[2]+'"></i>':'')+'</div>';
+    if(n>=5){var share=c[0]/n;
+      h+='<p>'+(share>=.8?"Deine Muraja von heute sitzt.":share>=.5?"Ordentlich. Geh die wackeligen Stellen noch einmal durch.":"Die heutige Portion sitzt noch nicht. Wiederhole sie noch einmal, bevor du weitermachst.")+'</p>';
+    }else h+='<p>Ab 5 Fragen bekommst du hier ein Urteil über deine heutige Muraja.</p>';
+  }else h+='<p>Heute hast du noch keine Frage beantwortet.</p>';
+  var rows=Object.keys(by).map(function(k){return by[k];}).filter(function(b){return b.miss;}).sort(function(a,b){return b.miss-a.miss||b.miss/b.all-a.miss/a.all;}).slice(0,5);
+  h+='<div class="weak-head">Wo du am meisten hängst</div>';
+  h+=rows.length?'<ul class="weak">'+rows.map(function(b){return '<li><span>'+SURAHS[b.s][1]+'</span><span class="num">'+b.miss+' von '+b.all+' nicht sicher</span></li>';}).join("")+'</ul>'
+    :'<p>Bisher war alles sicher.</p>';
+  return h;
+}
+// Hints that work without the Quran text: positions, counts and surah names.
+function qHint(q){
+  var name=SURAHS[q.s][1];
+  if(q.type==="mid"){
+    var pg=Math.min(Math.floor(pos[q.s]+(q.n-1)/AY[q.s]*(pos[q.s+1]-pos[q.s])+1e-9),604);
+    return name+" hat "+AY[q.s]+" Ayat. Aya "+q.n+" steht ungefähr auf Seite "+pg+"."+(q.n>2?" Hilft das nicht, rezitiere ab Aya "+(q.n-1)+" und lauf in die Stelle hinein.":"");
+  }
+  if(q.type==="end") return name+" hat "+AY[q.s]+" Ayat. Du beginnst bei Aya "+(AY[q.s]-4)+".";
+  if(q.type==="full") return name+" hat "+AY[q.s]+" Ayat.";
+  if(q.type==="link") return "Die nächste Sure ist "+SURAHS[q.s+1][1]+" (Nr. "+(q.s+2)+", "+AY[q.s+1]+" Ayat).";
+  var st=[];for(var i=0;i<NS;i++) if(SURAHS[i][0]===q.n) st.push(SURAHS[i][1]);
+  return st.length?"Auf dieser Seite beginnt: "+st.join(", ")+".":"Auf dieser Seite beginnt keine neue Sure. Sie liegt mitten in "+name+".";
+}
+function qValid(q){
+  return !!q&&q.type!=="page"&&quizPool().indexOf(q.s)>=0;
+}
+function renderQuiz(){
+  state.quiz.weak=state.quiz.weak.filter(function(y){return y.type!=="page";});
+  if(!qValid(ui.q)){ui.q=newQuestion();ui.hint=false;ui.show=false;}
+  var q=ui.q,w=state.quiz.weak,h;
+  if(!q){
+    h='<div class="eyebrow">Abfrage</div><h2>Noch nichts zum Abfragen</h2><p>Hake unter „Plan ändern“ mindestens eine ganze Sure an.</p>';
+  }else{
+    var x=qText(q),isWeak=w.some(function(y){return qKey(y)===qKey(q);});
+    var st=qStart(q),ay=st&&TEXT[st.s]?TEXT[st.s][st.n-1]:null,name=SURAHS[q.s][1];
+    if(st&&!TEXT[st.s]&&!textAsked[st.s]){
+      textAsked[st.s]=1;
+      (function(su){loadSurah(su).then(function(ok){if(!ok) textFail[su]=1;renderQuiz();});})(st.s);
+    }
+    if(q.type==="link"&&!TEXT[q.s+1]&&!textAsked[q.s+1]){textAsked[q.s+1]=1;loadSurah(q.s+1).then(function(){renderQuiz();});}
+    var body=x.body;
+    if(ay){
+      body=q.type==="mid"?"Rezitiere ab diesen Wörtern "+Math.min(5,AY[q.s]-q.n+1)+" Ayat weiter."
+        :q.type==="end"?"Rezitiere die letzten 5 Ayat. Sie beginnen bei Aya "+st.n+" mit diesen Wörtern."
+        :q.type==="full"?"Rezitiere die ganze Sure, alle "+AY[q.s]+" Ayat. Sie beginnt mit diesen Wörtern."
+        :"Rezitiere die letzte Aya von "+name+" ab diesen Wörtern und direkt weiter die ersten 3 Ayat der nächsten Sure.";
+    }
+    var today=state.quiz.scope!=="all",hasToday=!!todaySurahs();
+    h='<div class="eyebrow">Abfrage · '+(today&&hasToday?"deine heutige Muraja":today?"heute ist frei, darum alles":"alles, was du kannst")+(isWeak?" · schwere Stelle":"")+'</div>'+
+      '<div class="h-row"><button class="chip" type="button" data-act="quiz-scope" data-v="today" aria-pressed="'+today+'">Nur heutige Portion</button>'+
+      '<button class="chip" type="button" data-act="quiz-scope" data-v="all" aria-pressed="'+!today+'">Alles</button></div><h2>'+x.title+'</h2><p>'+body+'</p>'+
+      (ay?(ui.show?passageHtml(q):'<p class="ayah" lang="ar" dir="rtl">'+(ui.hint?ay:firstWords(ay)+" …")+'</p>'):'')+
+      '<div class="h-row"><button class="btn-acc" type="button" data-act="quiz-rate" data-r="0">Sicher</button>'+
+      '<button class="chip" type="button" data-act="quiz-rate" data-r="1">Wackelig</button>'+
+      '<button class="chip" type="button" data-act="quiz-rate" data-r="2">Nicht gekonnt</button>'+
+      '<button class="linkbtn" type="button" data-act="quiz-skip">Andere Frage</button></div>'+
+      (ay?(ui.hint&&q.type==="link"?'<p class="hint">Danach kommt '+SURAHS[q.s+1][1]+'.</p>':'')+
+          '<div class="h-row"><button class="chip" type="button" data-act="quiz-hint" aria-pressed="'+ui.hint+'">'+(ui.hint?"Tipp verbergen":"Tipp: ganze Aya zeigen")+'</button>'+
+          '<button class="chip" type="button" data-act="quiz-show" aria-pressed="'+ui.show+'">'+(ui.show?"Wieder verbergen":"Alles anzeigen und prüfen")+'</button></div>'
+         :(ui.hint?'<p class="hint"><strong>Tipp:</strong> '+qHint(q)+'</p>':'')+
+          '<div><button class="chip" type="button" data-act="quiz-hint" aria-pressed="'+ui.hint+'">'+(ui.hint?"Tipp verbergen":"Tipp anzeigen")+'</button></div>');
+    if(st&&!ay&&textFail[st.s]){
+      h+='<p class="hint">Für die Anfangswörter fehlt der Korantext. Lade ihn einmal von tanzil.net/download (Textart „Uthmani“, Ausgabe „Text (with aya numbers)“) und wähle die Datei hier aus.</p>'+
+        '<div><label for="qfile" class="filelabel">Korantext-Datei</label> <input type="file" id="qfile" accept=".txt,text/plain"></div>'+(textMsg?'<p>'+textMsg+'</p>':'');
+    }
+  }
+  h+=statsHtml();
+  if(w.length){
+    h+='<div class="weak-head">Deine schweren Stellen ('+w.length+')</div><ul class="weak">'+w.map(function(y){
+      return '<li><span>'+qText(y).title+(y.lvl>=2?'<span class="tag open">nicht gekonnt</span>':'')+'</span><button type="button" data-act="quiz-del" data-k="'+qKey(y)+'" aria-label="'+qText(y).title+' entfernen">Entfernen</button></li>';
+    }).join("")+'</ul><p>Wackelige Stellen kommen öfter dran. Nach „Sicher“ verschwinden sie wieder.</p>';
+  }
+  $("quiz").innerHTML=h;
+}
+function goalAtoms(g){
+  if(g.charAt(0)==="j"){var rg=juzRange(+g.slice(1));return atomsWhere(function(t){return t.a>=rg[0]&&t.a<rg[1];});}
+  if(g.charAt(0)==="s") return surahList(+g.slice(1));
+  return null;
+}
+function sumLen(list){var x=0;list.forEach(function(i){x+=atoms[i].len;});return x;}
+// Goal calculator: what is still missing, and how many lines per learning day until the date.
+function renderCalc(){
+  var c=state.calc,now=new Date();now.setHours(12,0,0,0);
+  var end=new Date(c.until+"T12:00:00"),D=isNaN(end)?0:Math.max(0,Math.round((end-now)/864e5)+1);
+  var list=goalAtoms(c.goal),R,known=0,names="";
+  if(list){
+    var miss=list.filter(function(i){return !sel[i];});
+    R=sumLen(miss);known=sumLen(list)-R;
+    var items=describe(miss).map(function(x){return x.title+(x.sub.indexOf("Teil")===0?" (Rest)":"");});
+    names=items.slice(0,5).join(", ")+(items.length>5?" und "+(items.length-5)+" weitere":"");
+  }else R=c.pages;
+  var out;
+  if(R<=0){
+    out='<div class="big">Das kannst du schon komplett</div><p>Alles in diesem Ziel ist in deiner Auswahl angehakt.</p>';
+  }else if(!D){
+    out='<div class="big">Datum wählen</div><p>Das Datum fehlt oder liegt in der Vergangenheit.</p>';
+  }else{
+    var lines=Math.ceil(R*15),L=Math.max(1,Math.floor(D/7)*c.dpw+Math.min(c.dpw,D%7)),per=Math.ceil(lines/L);
+    out='<div class="big num">'+linesWord(per)+' pro Lerntag</div>';
+    out+='<p>Es fehlen noch '+pagesWord(R)+' ('+linesWord(lines)+')'+(names?': '+names:'')+'.'+(known>0.01?' '+pagesWord(known).replace(/^unter/,"Unter")+' davon kannst du schon.':'')+'</p>';
+    out+='<p class="num">Bis '+end.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})+' sind es '+(D===1?"1 Tag":D+" Tage")+', davon '+(L===1?"1 Lerntag":L+" Lerntage")+'.'+
+      (D>=7?' Das sind etwa '+pagesWord(R/(D/7))+' pro Woche.':'')+(per>=15?' Pro Lerntag ist das etwa '+pagesWord(per/15)+'.':'')+'</p>';
+  }
+  $("calc-out").innerHTML=out;
+  $("c-pages-wrap").hidden=c.goal!=="x";
+  var a=document.activeElement;
+  if(a!==$("c-goal")) $("c-goal").value=c.goal;
+  if(a!==$("c-pages")) $("c-pages").value=String(c.pages);
+  if(a!==$("c-until")) $("c-until").value=c.until;
+  if(a!==$("c-dpw")) $("c-dpw").value=String(c.dpw);
+}
+function renderWeek(wp){
+  var t=todayIdx(),mon=monday(),rows="",segs="";
+  for(var d=0;d<7;d++){
+    var p=wp.days[d],dt=new Date(mon);dt.setDate(mon.getDate()+d);
+    var date=String(dt.getDate()).padStart(2,"0")+"."+String(dt.getMonth()+1).padStart(2,"0")+".";
+    var what,more="",isOpen=!!p&&ui.day===d,canTick=!!p&&d<=t,full=false;
+    if(p){
+      full=p.donePages>=p.pages-1e-6;
+      what=describe(p.atoms).map(function(x){return x.title;}).join(", ")+(d<t&&!full&&state.days[d]?'<span class="tag open">Rest verschoben</span>':"")+
+        '<small class="num">'+(d<=t?fmt0(p.donePages)+" von "+pagesWord(p.pages)+" gemacht":pagesWord(p.pages))+'</small>';
+      segs+='<div class="seg'+(full?" done":p.donePages>1e-6?" part":"")+(d===t?" now":"")+'" style="flex-grow:'+p.pages.toFixed(3)+'">'+DAYS[d]+'</div>';
+      if(isOpen) more='<ul class="d-more">'+describe(p.atoms,true).map(function(x){
+        var st=itemState(x);
+        return '<li data-act="'+(canTick?"item":"noop")+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'">'+
+          (canTick?'<button class="tick sm'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>':'')+
+          '<span class="grow">'+x.title+'<small class="num">'+x.sub+'</small>'+(canTick?gradeRow(x,d):'')+'</span><span class="ar" lang="ar">'+x.ar+'</span></li>';
+      }).join("")+'</ul>';
+    }else what=state.days[d]?(d<t?"Nichts eingeplant":"Nichts mehr offen"):"Frei";
+    rows+='<li class="day'+(d===t?" now":"")+(p?" can-open":" off")+'"'+(p?' data-act="openday" data-d="'+d+'"':'')+'><div class="d-name">'+DAYS[d]+'<span class="d-date num">'+date+'</span></div>'+
+      (p?'<button class="d-what" type="button" aria-expanded="'+isOpen+'">'+what+'<small class="d-hint">'+(isOpen?"Liste schließen":canTick?"Einzelne Suren abhaken":"Suren anzeigen")+'</small></button>':'<div class="d-what">'+what+'</div>')+
+      (canTick?'<button class="tick" type="button" data-act="dayall" data-d="'+d+'" aria-pressed="'+full+'" aria-label="'+DAYS_LONG[d]+' ganz erledigt">✓</button>':'<span></span>')+more+'</li>';
+  }
+  $("week").innerHTML=rows;
+  $("ribbon").innerHTML=segs;
+  $("ribbon").style.display=segs?"":"none";
+  $("week-sum").textContent=wp.total?fmt0(wp.done)+" von "+pagesWord(wp.total)+" geschafft":"";
+}
+function renderDays(){
+  $("days").innerHTML=DAYS.map(function(n,d){
+    return '<button class="chip" type="button" data-act="day" data-d="'+d+'" aria-pressed="'+state.days[d]+'" aria-label="'+DAYS_LONG[d]+'">'+n+'</button>';
+  }).join("");
+}
+function renderSelection(plan){
+  var n=plan.active.length;
+  $("sel-sum").textContent=plan.total?pagesWord(plan.total)+(n?" · etwa "+pagesWord(plan.total/Math.min(n,plan.count))+" pro Tag":""):"Nichts ausgewählt";
+  var runs=toRuns();
+  $("mushaf").innerHTML=runs.map(function(r){
+    var a=atoms[r[0]].a,b=atoms[r[1]].b;
+    return '<i style="left:'+((a-1)/604*100).toFixed(3)+'%;width:'+Math.max(.4,(b-a)/604*100).toFixed(3)+'%"></i>';
+  }).join("");
+  var j="";
+  for(var k=1;k<=30;k++){
+    var rg=juzRange(k),st=stateOf(atomsWhere(function(t){return t.a>=rg[0]&&t.a<rg[1];}));
+    j+='<button class="chip num '+st+'" type="button" data-act="juz" data-j="'+k+'" aria-pressed="'+(st==="full")+'" aria-label="Juz '+k+'">'+k+'</button>';
+  }
+  $("juz").innerHTML=j;
+  renderSurahs();
+}
+function surahList(s){var r=surahAtoms[s],o=[];for(var i=r[0];i<=r[1];i++) o.push(i);return o;}
+function renderSurahs(){
+  var f=ui.filter.trim().toLowerCase().replace(/[^a-z0-9]/g,""),h="";
+  for(var s=0;s<NS;s++){
+    var name=SURAHS[s][1];
+    if(f&&name.toLowerCase().replace(/[^a-z0-9]/g,"").indexOf(f)<0&&String(s+1)!==f) continue;
+    var list=surahList(s),st=stateOf(list),len=pos[s+1]-pos[s],multi=list.length>=3,open=ui.open===s;
+    h+='<li class="s-row '+st+'"><div class="s-line"><button class="s-main" type="button" data-act="surah" data-s="'+s+'" aria-pressed="'+(st==="full")+'">'+
+      '<span class="s-box">'+(st==="full"?"✓":st==="part"?"–":"")+'</span><span class="s-no num">'+(s+1)+'</span>'+
+      '<span class="s-name">'+name+'<small class="num">'+pagesWord(len)+', ab S. '+SURAHS[s][0]+'</small></span><span class="ar" lang="ar">'+SURAHS[s][2]+'</span></button>'+
+      (multi?'<button class="s-more" type="button" data-act="pages" data-s="'+s+'" aria-expanded="'+open+'">Seiten</button>':'')+'</div>';
+    if(multi&&open){
+      var pages=[],seen={};list.forEach(function(i){var p=atoms[i].page;if(!seen[p]){seen[p]=1;pages.push(p);}});
+      h+='<div class="pg">'+pages.map(function(p){
+        var on=stateOf(list.filter(function(i){return atoms[i].page===p;}))==="full";
+        return '<button class="chip num" type="button" data-act="page" data-s="'+s+'" data-p="'+p+'" aria-pressed="'+on+'" aria-label="Seite '+p+'">'+p+'</button>';
+      }).join("")+'</div>';
+    }
+    h+='</li>';
+  }
+  $("surah-list").innerHTML=h||'<li class="empty">Keine Sure gefunden.</li>';
+}
+function render(){
+  var plan=buildPlan(state.days);
+  $("date").textContent=new Date().toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+  var wp=nowPlan();renderToday(plan,wp);renderHifz();renderWeek(wp);renderGrades();renderQuiz();renderCalc();renderDays();renderSelection(plan);
+}
+
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");if(!b) return;
+  var act=b.dataset.act,list,st;
+  if(act==="noop") return;
+  if(act==="grade"){
+    var gs=+b.dataset.s,gg=+b.dataset.g,gd=+b.dataset.d;
+    if(state.grade[gs]&&state.grade[gs].g===gg) delete state.grade[gs];
+    else{
+      state.grade[gs]={g:gg,d:iso(new Date())};
+      for(var gi=+b.dataset.a;gi<=+b.dataset.b;gi++) if(state.rev[gi]===undefined) state.rev[gi]=gd;
+    }
+    commit();return;
+  }
+  if(act==="item"||act==="dayall"){
+    var d=+b.dataset.d,ids=[];
+    if(act==="item"){for(var i=+b.dataset.a;i<=+b.dataset.b;i++) ids.push(i);}
+    else{var dp=nowPlan().days[d];ids=dp?dp.atoms:[];}
+    var allDone=ids.length&&ids.every(function(i){return state.rev[i]!==undefined;});
+    ids.forEach(function(i){if(allDone) delete state.rev[i]; else if(state.rev[i]===undefined) state.rev[i]=d;});
+    commit();
+  }
+  else if(act==="openday"){ui.day=ui.day===+b.dataset.d?-1:+b.dataset.d;render();}
+  else if(act==="hifz-set"){var c=hifzCalc(),h=state.hifz,n=+b.dataset.n;
+    if(c.set&&c.logged===n){h.learned=c.learned-c.logged;h.today=0;h.day="";}
+    else{h.learned=Math.min(c.total,c.learned-c.logged+n);h.today=n;h.day=c.t;}
+    commit();}
+  else if(act==="hifz-add"){var c=hifzCalc(),h=state.hifz,n=+b.dataset.n;if(h.day!==c.t){h.day=c.t;h.today=0;}
+    var next=Math.min(c.total,Math.max(0,c.learned+n));h.today=Math.max(0,h.today+(next-c.learned));h.learned=next;commit();}
+  else if(act==="hifz-reset"){state.hifz.learned=0;state.hifz.today=0;commit();}
+  else if(act==="quiz-hint"){ui.hint=!ui.hint;renderQuiz();}
+  else if(act==="quiz-scope"){state.quiz.scope=b.dataset.v==="all"?"all":"today";ui.hint=false;ui.show=false;ui.q=null;commit();}
+  else if(act==="quiz-show"){ui.show=!ui.show;renderQuiz();}
+  else if(act==="quiz-skip"){ui.hint=false;ui.show=false;ui.q=newQuestion(ui.q&&qKey(ui.q));renderQuiz();}
+  else if(act==="quiz-del"){state.quiz.weak=state.quiz.weak.filter(function(x){return qKey(x)!==b.dataset.k;});commit();}
+  else if(act==="quiz-rate"&&ui.q){
+    var r=+b.dataset.r,k=qKey(ui.q),w=state.quiz.weak,at=-1;
+    state.quiz.hist.push({d:iso(new Date()),s:ui.q.s,r:r});if(state.quiz.hist.length>200) state.quiz.hist.shift();
+    w.forEach(function(x,i){if(qKey(x)===k) at=i;});
+    if(r>0){if(at>=0) w[at].lvl=r; else{w.push({type:ui.q.type,s:ui.q.s,n:ui.q.n,lvl:r});if(w.length>30) w.shift();}}
+    else if(at>=0){w[at].lvl-=1;if(w[at].lvl<=0) w.splice(at,1);}
+    ui.hint=false;ui.show=false;ui.q=newQuestion(k);commit();
+  }
+  else if(act==="exp"){
+    var code="MURAJA1:"+btoa(unescape(encodeURIComponent(JSON.stringify(serialize())))),ta=$("bk");
+    ta.value=code;
+    var manual=function(){ta.focus();ta.select();$("bk-msg").textContent="Der Code steht im Feld. Markiere ihn und kopiere ihn.";};
+    try{navigator.clipboard.writeText(code).then(function(){$("bk-msg").textContent="Code kopiert. Füge ihn auf dem anderen Gerät ein.";},manual);}catch(err){manual();}
+  }
+  else if(act==="imp"){
+    var raw2=$("bk").value.replace(/\s+/g,""),obj=null;
+    try{obj=JSON.parse(decodeURIComponent(escape(atob(raw2.replace(/^MURAJA1:/,"")))));}catch(err){}
+    if(obj&&adopt(obj)){state.t=Date.now();state.example=false;saveLocal();scheduleRemote();render();$("bk").value="";$("bk-msg").textContent="Übernommen. Dein Plan auf diesem Gerät ist jetzt wie auf dem anderen.";}
+    else $("bk-msg").textContent="Mit diesem Code kann ich nichts anfangen. Kopiere ihn noch einmal vollständig.";
+  }
+  else if(act==="resetweek"){state.rev={};commit();}
+  else if(act==="day"){state.days[+b.dataset.d]=!state.days[+b.dataset.d];commit();}
+  else if(act==="clear"){sel.fill(0);commit();}
+  else if(act==="juz"){var rg=juzRange(+b.dataset.j);list=atomsWhere(function(t){return t.a>=rg[0]&&t.a<rg[1];});setAll(list,stateOf(list)==="full"?0:1);commit();}
+  else if(act==="surah"){list=surahList(+b.dataset.s);setAll(list,stateOf(list)==="full"?0:1);commit();}
+  else if(act==="page"){var s=+b.dataset.s,p=+b.dataset.p;list=surahList(s).filter(function(i){return atoms[i].page===p;});setAll(list,stateOf(list)==="full"?0:1);commit();}
+  else if(act==="pages"){ui.open=ui.open===+b.dataset.s?-1:+b.dataset.s;renderSurahs();}
+});
+$("filter").addEventListener("input",function(e){ui.filter=e.target.value;renderSurahs();});
+
+$("h-sura").innerHTML=SURAHS.map(function(x,i){return '<option value="'+i+'">'+(i+1)+'. '+x[1]+'</option>';}).join("");
+$("h-sura").addEventListener("change",function(e){state.hifz.s=+e.target.value;commit();});
+$("h-pages").addEventListener("change",function(e){var v=parseFloat(String(e.target.value).replace(",","."));if(v>0){state.hifz.pages=Math.min(50,v);commit();}});
+$("h-until").addEventListener("change",function(e){if(e.target.value){state.hifz.until=e.target.value;commit();}});
+
+(function(){
+  var h='<option value="x">Eigene Seitenzahl</option><optgroup label="Ganzer Juz">';
+  for(var k=30;k>=1;k--) h+='<option value="j'+k+'">Juz '+k+'</option>';
+  h+='</optgroup><optgroup label="Einzelne Sure">';
+  for(var i=NS-1;i>=0;i--) h+='<option value="s'+i+'">'+(i+1)+'. '+SURAHS[i][1]+'</option>';
+  $("c-goal").innerHTML=h+'</optgroup>';
+})();
+$("c-goal").addEventListener("change",function(e){state.calc.goal=e.target.value;commit();});
+$("c-pages").addEventListener("change",function(e){var v=parseFloat(String(e.target.value).replace(",","."));if(v>0){state.calc.pages=Math.min(604,v);commit();}});
+$("c-until").addEventListener("change",function(e){if(e.target.value){state.calc.until=e.target.value;commit();}});
+$("c-dpw").addEventListener("change",function(e){state.calc.dpw=+e.target.value;commit();});
+
+document.addEventListener("change",function(e){
+  if(e.target.id!=="qfile"||!e.target.files||!e.target.files[0]) return;
+  var fr=new FileReader();
+  fr.onload=function(){
+    var n=parseTanzil(fr.result);
+    if(n){textMsg="";try{localStorage.setItem("muraja-text",String(fr.result));}catch(err){}}
+    else textMsg="In dieser Datei habe ich keinen Korantext im Format „Sure|Aya|Text“ gefunden.";
+    renderQuiz();
+  };
+  fr.onerror=function(){textMsg="Die Datei konnte nicht gelesen werden.";renderQuiz();};
+  fr.readAsText(e.target.files[0]);
+});
+try{var saved=localStorage.getItem("muraja-text");if(saved) parseTanzil(saved);}catch(e){}
+
+render();
+initSync();
+if("serviceWorker" in navigator&&location.protocol!=="file:") navigator.serviceWorker.register("sw.js").catch(function(){});
+fetch("quran.txt").then(function(r){return r.ok?r.text():"";}).then(function(t){if(t&&parseTanzil(t)) renderQuiz();}).catch(function(){});
+</script>
+</body>
+</html>
