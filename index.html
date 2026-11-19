@@ -375,6 +375,24 @@ section.today{gap:12px;padding:20px}
 .wbar .zero{stroke:var(--line);stroke-width:2}
 .wbar .val{font-size:11px;font-weight:700;fill:var(--ink)}
 .wread{margin-top:4px}
+/* Tab bar: floating, frosted, with a marker that slides to the open area */
+.wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+.tabbar{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
+  max-width:560px;margin:0 auto;padding:6px;border-radius:26px;border:1px solid color-mix(in srgb,var(--line) 80%,transparent);
+  background:color-mix(in srgb,var(--surface) 78%,transparent);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);
+  box-shadow:0 10px 30px rgba(10,25,20,.16),0 2px 6px rgba(10,25,20,.08)}
+@media (min-width:721px){.tabbar{border-radius:26px;border:1px solid color-mix(in srgb,var(--line) 80%,transparent)}}
+.tab-ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/6);border-radius:20px;background:var(--accent-soft);
+  transform:translateX(calc(var(--i,0)*100%));transition:transform .32s cubic-bezier(.3,.8,.3,1)}
+.tab{position:relative;z-index:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:54px;padding:5px 0 4px;border-radius:20px;color:var(--muted);-webkit-tap-highlight-color:transparent}
+.ti{display:grid;place-items:center;height:26px;transition:transform .18s ease}
+.tab:active .ti{transform:scale(.9)}
+.tl{font-size:10.5px;font-weight:600;letter-spacing:.01em;line-height:1}
+.tab[aria-current="page"]{color:var(--accent)}
+.tab[aria-current="page"] .tl{font-weight:700}
+.tab[aria-current="page"] svg{stroke-width:2.1}
+@media (prefers-reduced-motion:reduce){.tab-ind,.ti{transition:none}}
 </style>
 </head>
 <body>
@@ -487,12 +505,13 @@ section.today{gap:12px;padding:20px}
 </div>
 
   <nav class="tabbar" aria-label="Bereiche">
-    <button type="button" class="tab" data-act="tab" data-v="heute" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg><span>Heute</span></button>
-    <button type="button" class="tab" data-act="tab" data-v="woche" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Woche</span></button>
-    <button type="button" class="tab" data-act="tab" data-v="pruefen" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg><span>Prüfen</span></button>
-    <button type="button" class="tab" data-act="tab" data-v="lernen" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5c-2-1.4-4.8-1.8-8-1.3v13c3.2-.5 6 0 8 1.3 2-1.3 4.8-1.8 8-1.3v-13c-3.2-.5-6-.1-8 1.3zM12 6.5v13"/></svg><span>Lernen</span></button>
-    <button type="button" class="tab" data-act="tab" data-v="stand" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V12M10 20V6M15 20v-9M20 20V9M3.5 20h17"/></svg><span>Stand</span></button>
-    <button type="button" class="tab" data-act="tab" data-v="plan" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg><span>Plan</span></button>
+    <span class="tab-ind" aria-hidden="true"></span>
+    <button type="button" class="tab" data-act="tab" data-v="heute" aria-current="false"><span class="ti"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.25"/><path d="M8.4 12.2l2.5 2.5 4.8-5"/></svg></span><span class="tl">Heute</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="woche" aria-current="false"><span class="ti"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.75" y="5.25" width="16.5" height="15" rx="3.25"/><path d="M3.75 9.75h16.5M8.25 3.25v3.5M15.75 3.25v3.5"/><circle cx="8.5" cy="14" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r=".9" fill="currentColor" stroke="none"/><circle cx="15.5" cy="14" r=".9" fill="currentColor" stroke="none"/></svg></span><span class="tl">Woche</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="pruefen" aria-current="false"><span class="ti"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3.25" width="6" height="11" rx="3"/><path d="M5.75 11.25a6.25 6.25 0 0 0 12.5 0M12 17.5v3.25M9 20.75h6"/></svg></span><span class="tl">Prüfen</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="lernen" aria-current="false"><span class="ti"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.6C10.2 5.3 7.6 4.8 4.25 5.1v12.6c3.35-.3 5.95.2 7.75 1.5 1.8-1.3 4.4-1.8 7.75-1.5V5.1C16.4 4.8 13.8 5.3 12 6.6z"/><path d="M12 6.6v12.6"/></svg></span><span class="tl">Lernen</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="stand" aria-current="false"><span class="ti"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.75 19.25h14.5"/><rect x="6" y="11" width="2.75" height="6" rx="1.1"/><rect x="10.65" y="6.5" width="2.75" height="10.5" rx="1.1"/><rect x="15.3" y="9" width="2.75" height="8" rx="1.1"/></svg></span><span class="tl">Stand</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="plan" aria-current="false"><span class="ti"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 7.5h8.5M17 7.5h2.5M4.5 16.5h2.5M11 16.5h8.5"/><circle cx="15" cy="7.5" r="2.1"/><circle cx="9" cy="16.5" r="2.1"/></svg></span><span class="tl">Plan</span></button>
   </nav>
 
 <div class="sheet" id="me" hidden>
@@ -919,6 +938,7 @@ function showTab(k,noScroll){
   ui.tab=k;
   document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("on",v.dataset.tab===k);});
   document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-current",b.dataset.v===k?"page":"false");});
+  var tb=document.querySelector(".tabbar");if(tb) tb.style.setProperty("--i",TABS.indexOf(k));
   if(location.hash!=="#"+k) history.replaceState(null,"","#"+k);
   try{localStorage.setItem("muraja-tab",k);}catch(e){}
   if(!noScroll) window.scrollTo(0,0);
@@ -1639,7 +1659,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
   ["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,stop,{passive:false});});
   document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1) e.preventDefault();},{passive:false});
 })();
-var APP_VERSION=11;
+var APP_VERSION=12;
 function checkVersion(){
   if(location.protocol==="file:"||!navigator.onLine) return;
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
