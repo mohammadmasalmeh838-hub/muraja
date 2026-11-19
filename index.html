@@ -265,6 +265,10 @@ body.noscroll{overflow:hidden}
 .sheet-card p.hint,.learn p.hint{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:10px 14px;margin:0;font-size:14px}
 body.ar-l :is(.portion .ar,.d-more .ar,.s-main .ar,p.ayah,.passage p,.me-sample){zoom:1.2}
 body.ar-xl :is(.portion .ar,.d-more .ar,.s-main .ar,p.ayah,.passage p,.me-sample){zoom:1.45}
+.hist{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 14px;margin-bottom:8px}
+.hist summary{cursor:pointer;display:flex;justify-content:space-between;gap:12px;padding:10px 0;font-weight:600;list-style:none}
+.hist summary::-webkit-details-marker{display:none}
+.hist summary .num{color:var(--muted);font-weight:500;font-size:14px}
 </style>
 </head>
 <body>
@@ -293,6 +297,10 @@ body.ar-xl :is(.portion .ar,.d-more .ar,.s-main .ar,p.ayah,.passage p,.me-sample
     <div class="sec-head"><h2 id="h-grades">Wie sitzen deine Suren?</h2></div>
     <div id="grades" class="grades-box" aria-labelledby="h-grades"></div>
     <div><button class="linkbtn" type="button" data-act="resetweek">Haken dieser Woche löschen</button></div>
+  </section>
+  <section class="sec" aria-labelledby="h-hist">
+    <div class="sec-head"><h2 id="h-hist">Verlauf</h2></div>
+    <div id="history"></div>
   </section>
   </div>
 
@@ -562,6 +570,7 @@ state.grade={};
 state.rev={};
 function defaultPrefs(){return {name:"",theme:"auto",ar:"m",start:"last"};}
 state.prefs=defaultPrefs();
+state.log=[];
 var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false,tab:"heute"};
 setAll(atomsWhere(function(t){return t.surah>=60;}),1); // start: As-Saff (61) bis An-Nas (114)
 
@@ -574,7 +583,7 @@ function revRuns(){
   }
   return r;
 }
-function serialize(){return {v:2,sel:toRuns(),days:state.days,week:state.week,rev:revRuns(),grade:state.grade,example:state.example,t:state.t,hifz:state.hifz,calc:state.calc,quiz:state.quiz,prefs:state.prefs};}
+function serialize(){return {v:2,sel:toRuns(),days:state.days,week:state.week,rev:revRuns(),grade:state.grade,example:state.example,t:state.t,hifz:state.hifz,calc:state.calc,quiz:state.quiz,prefs:state.prefs,log:state.log};}
 function adopt(o){
   if(!o||!Array.isArray(o.sel)) return false;
   fromRuns(o.sel);
@@ -600,10 +609,34 @@ function adopt(o){
   state.hifz=h&&typeof h==="object"?{s:h.s>=0&&h.s<NS?h.s|0:dh.s,pages:h.pages>0?+h.pages:dh.pages,until:typeof h.until==="string"?h.until:dh.until,learned:+h.learned||0,day:typeof h.day==="string"?h.day:"",today:+h.today||0}:dh;
   var pr=o.prefs,dp=defaultPrefs();
   state.prefs=pr&&typeof pr==="object"?{name:typeof pr.name==="string"?pr.name.slice(0,30):"",theme:/^(auto|light|dark)$/.test(pr.theme)?pr.theme:dp.theme,ar:/^(m|l|xl)$/.test(pr.ar)?pr.ar:dp.ar,start:/^(last|heute|pruefen|lernen)$/.test(pr.start)?pr.start:dp.start}:(state.prefs||dp);
+  state.log=normLog(o.log);
   rollWeek();
   return true;
 }
-function rollWeek(){if(state.week!==weekId()){state.week=weekId();state.done={};state.rev={};}}
+// Past weeks are never thrown away: their ticks move into state.log ({w: monday, rev: runs}).
+function normLog(l){
+  return (Array.isArray(l)?l:[]).filter(function(x){return x&&typeof x.w==="string"&&Array.isArray(x.rev);})
+    .map(function(x){return {w:x.w,rev:x.rev.filter(function(r){return Array.isArray(r)&&r.length===3;})};}).slice(-104);
+}
+function addLog(log,w,runs){
+  if(!runs||!runs.length) return log;
+  var out=log.slice(),i=-1;out.forEach(function(x,k){if(x.w===w) i=k;});
+  if(i<0){out.push({w:w,rev:runs});out.sort(function(a,b){return a.w<b.w?-1:1;});}
+  else out[i]={w:w,rev:mapToRuns(Object.assign(runsToMap(out[i].rev),runsToMap(runs)))};
+  return out.slice(-104);
+}
+function runsToMap(runs){var m={};(runs||[]).forEach(function(r){for(var i=r[0]|0;i<=(r[1]|0);i++) m[i]=r[2]|0;});return m;}
+function mapToRuns(m){
+  var ks=Object.keys(m).map(Number).sort(function(a,b){return a-b;}),r=[],cur=null;
+  ks.forEach(function(i){var d=m[i];if(cur&&cur[2]===d&&cur[1]===i-1) cur[1]=i; else{cur=[i,i,d];r.push(cur);}});
+  return r;
+}
+function rollWeek(){
+  if(state.week!==weekId()){
+    state.log=addLog(state.log||[],state.week,revRuns());
+    state.week=weekId();state.done={};state.rev={};
+  }
+}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
 try{var raw=localStorage.getItem(KEY);if(raw) adopt(JSON.parse(raw));}catch(e){}
 
@@ -619,13 +652,73 @@ function setSync(mode){
   else el.textContent="Dein Plan wird auf diesem Gerät gespeichert. Für den Abgleich mit anderen Geräten braucht die App einmal Internet.";
   renderAcct();
 }
-function scheduleRemote(){if(!ref){if(sbUser) pending=true;return;}clearTimeout(timer);timer=setTimeout(function(){timer=null;flush();},900);}
-function flush(){
-  if(!ref) return;
-  if(writing){dirty=true;return;}
-  writing=true;pending=false;
-  ref.set({json:JSON.stringify(serialize()),t:state.t}).catch(function(){pending=true;})
-    .then(function(){writing=false;if(dirty){dirty=false;flush();}});
+/* Sync: every device keeps the last version it agreed on with the server ("base").
+   If only one side changed since then, that side wins. If both changed, the two are merged
+   item by item, so ticks, ratings and answers from either device are never lost. */
+var base=null,syncing=null,again=false;
+try{base=JSON.parse(localStorage.getItem("muraja-base")||"null");}catch(e){}
+function setBase(o){if(o&&sbUser) o.uid=sbUser.id;base=o;try{localStorage.setItem("muraja-base",JSON.stringify(o));}catch(e){}}
+function scheduleRemote(){if(!ref){if(sbUser) pending=true;return;}clearTimeout(timer);timer=setTimeout(function(){timer=null;sync();},900);}
+function flush(){return sync();}
+function pull(){return sync();}
+function toCurrentWeek(o){
+  o=JSON.parse(JSON.stringify(o||{}));o.log=normLog(o.log);
+  if(o.week&&o.week!==weekId()){o.log=addLog(o.log,o.week,o.rev||[]);o.rev=[];}
+  o.week=weekId();o.rev=o.rev||[];return o;
+}
+function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+function pick3(b,l,r,newerL){if(b===undefined) return newerL?l:r;return !same(l,b)?l:r;}
+function mergeMap(B,L,R,noBase,prefer){
+  var out={},keys={};[L,R].forEach(function(m){Object.keys(m).forEach(function(k){keys[k]=1;});});
+  Object.keys(keys).forEach(function(k){
+    var l=L[k],r=R[k],v;
+    if(noBase) v=l===undefined?r:r===undefined?l:prefer(l,r);
+    else v=!same(l,B[k])?l:r;
+    if(v!==undefined) out[k]=v;
+  });
+  return out;
+}
+function countHist(h){var c={};(h||[]).forEach(function(x){var k=x.d+"|"+x.s+"|"+x.r;c[k]=(c[k]||0)+1;});return c;}
+function merge3(B,L,R){
+  var noBase=!B;B=noBase?{}:toCurrentWeek(B);L=toCurrentWeek(L);R=toCurrentWeek(R);
+  var newerL=(L.t||0)>=(R.t||0),M={v:2,week:weekId(),example:false};
+  ["sel","days","hifz","calc","prefs"].forEach(function(k){M[k]=noBase?(newerL?L[k]:R[k]):pick3(B[k],L[k],R[k],newerL);});
+  M.rev=mapToRuns(mergeMap(runsToMap(B.rev),runsToMap(L.rev),runsToMap(R.rev),noBase,function(l,r){return Math.min(l,r);}));
+  M.grade=mergeMap(B.grade||{},L.grade||{},R.grade||{},noBase,function(l,r){return (l.d||"")>=(r.d||"")?l:r;});
+  var lq=L.quiz||{},rq=R.quiz||{},bq=B.quiz||{};
+  var cl=countHist(lq.hist),cr=countHist(rq.hist),cb=countHist(bq.hist),hist=(rq.hist||[]).slice();
+  Object.keys(cl).forEach(function(k){
+    var extra=noBase?cl[k]-(cr[k]||0):cl[k]-(cb[k]||0);
+    var p=k.split("|");for(var n=0;n<extra;n++) hist.push({d:p[0],s:+p[1],r:+p[2]});
+  });
+  hist.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0;});
+  M.quiz={scope:noBase?(newerL?lq.scope:rq.scope):pick3(bq.scope,lq.scope,rq.scope,newerL),
+    weak:noBase?(newerL?lq.weak:rq.weak):pick3(bq.weak,lq.weak,rq.weak,newerL),hist:hist.slice(-200)};
+  var log=normLog(R.log);normLog(L.log).forEach(function(x){log=addLog(log,x.w,x.rev);});M.log=log;
+  M.t=Date.now();
+  return M;
+}
+function sync(){
+  if(!ref) return Promise.resolve();
+  if(syncing){again=true;return syncing;}
+  syncing=ref.get().then(function(snap){
+    var R=null;
+    if(snap.exists){try{R=JSON.parse(snap.data().json);}catch(e){}}
+    var L=serialize();
+    if(R&&(!base||R.t!==base.t)){
+      if(!L.t||(base&&L.t===base.t)){if(adopt(R)){saveLocal();render();}setBase(R);return;}
+      if(L.t===R.t){setBase(R);return;}
+      var M=merge3(base,L,R);
+      if(adopt(M)){saveLocal();render();}
+      L=serialize();
+    }else if(R&&L.t===R.t){setBase(R);return;}
+    if(!R&&!L.t) return;
+    var out=L;
+    return ref.set({json:JSON.stringify(out),t:out.t}).then(function(){pending=false;setBase(out);});
+  }).catch(function(){pending=true;}).then(function(){
+    syncing=null;if(again){again=false;return sync();}
+  });
+  return syncing;
 }
 // Row of the signed-in user in table muraja_state, shaped like the doc API pull() expects.
 function sbRef(uid){
@@ -639,9 +732,10 @@ function sbRef(uid){
 }
 function useSession(session){
   sbUser=session&&session.user?session.user:null;
-  if(!sbUser){ref=null;setSync("local");return;}
+  if(!sbUser){ref=null;setBase(null);setSync("local");return;}
+  if(base&&base.uid!==sbUser.id) setBase(null);
   ref=sbRef(sbUser.id);setSync("account");
-  pull().then(function(){if(pending) scheduleRemote();}).catch(function(){});
+  sync();
 }
 var acct={mode:"login",msg:"",busy:false,later:false,mail:""};
 try{acct.later=localStorage.getItem("muraja-acct-later")==="1";}catch(e){}
@@ -779,17 +873,6 @@ function initSupabase(){
   });
   setInterval(function(){if(ref&&document.visibilityState==="visible") pull().catch(function(){});},20000);
   window.addEventListener("online",function(){if(ref){pull().catch(function(){});if(pending) scheduleRemote();}});
-}
-function pull(){
-  if(!ref||writing||timer&&dirty) return Promise.resolve();
-  return ref.get().then(function(snap){
-    if(snap.exists){
-      var d=snap.data(),remote=null;
-      try{remote=JSON.parse(d.json);}catch(e){}
-      if(remote&&(state.example||(remote.t||0)>(state.t||0))){ if(adopt(remote)){saveLocal();render();} }
-      else if(!state.example&&(state.t||0)>((remote&&remote.t)||0)) scheduleRemote();
-    }else if(state.t>0) scheduleRemote();
-  });
 }
 function initSync(){
   if(!window.claude||typeof window.claude.use!=="function") return;
@@ -1158,6 +1241,23 @@ function renderWeek(wp){
   $("ribbon").style.display=segs?"":"none";
   $("week-sum").textContent=wp.total?fmt0(wp.done)+" von "+pagesWord(wp.total)+" geschafft":"";
 }
+function renderHistory(){
+  var log=(state.log||[]).slice().reverse(),h='';
+  if(!log.length){$("history").innerHTML='<p class="lead">Hier erscheinen deine vergangenen Wochen, sobald eine Woche vorbei ist. Nichts von dem, was du abhakst, geht verloren.</p>';return;}
+  log.forEach(function(x){
+    var m=runsToMap(x.rev),byDay={},all=Object.keys(m).map(Number).filter(function(i){return i<atoms.length;});
+    all.forEach(function(i){(byDay[m[i]]=byDay[m[i]]||[]).push(i);});
+    var mon=new Date(x.w+"T12:00:00"),end=new Date(mon);end.setDate(mon.getDate()+6);
+    var f=function(d){return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+".";};
+    h+='<details class="hist"><summary><span>'+f(mon)+' – '+f(end)+'</span><span class="num">'+pagesWord(lenOf(all))+' wiederholt</span></summary><ul class="d-more">';
+    Object.keys(byDay).map(Number).sort().forEach(function(d){
+      var l=byDay[d].sort(function(a,b){return a-b;});
+      h+='<li><span class="grow"><strong>'+DAYS_LONG[d]+'</strong><small>'+describe(l).map(function(y){return y.title;}).join(", ")+'</small></span><span class="num">'+pagesWord(lenOf(l))+'</span></li>';
+    });
+    h+='</ul></details>';
+  });
+  $("history").innerHTML=h;
+}
 function renderDays(){
   $("days").innerHTML=DAYS.map(function(n,d){
     return '<button class="chip" type="button" data-act="day" data-d="'+d+'" aria-pressed="'+state.days[d]+'" aria-label="'+DAYS_LONG[d]+'">'+n+'</button>';
@@ -1204,7 +1304,7 @@ function renderSurahs(){
 function render(){
   var plan=buildPlan(state.days);
   renderHello();applyPrefs();renderMeBtn();
-  var wp=nowPlan();renderToday(plan,wp);renderHifz();renderWeek(wp);renderGrades();renderQuiz();renderCalc();renderDays();renderSelection(plan);
+  var wp=nowPlan();renderToday(plan,wp);renderHifz();renderWeek(wp);renderGrades();renderHistory();renderQuiz();renderCalc();renderDays();renderSelection(plan);
 }
 
 document.addEventListener("click",function(e){
