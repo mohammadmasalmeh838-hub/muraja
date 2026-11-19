@@ -843,6 +843,7 @@ function renderMe(){
     h+='</div>';
   }
   if(me.msg) h+='<p class="hint">'+me.msg+'</p>';
+  h+='<p class="muted-p" style="text-align:center">Version '+APP_VERSION+' · aktualisiert sich von selbst</p>';
   $("me-card").innerHTML=h;
 }
 function openMe(){me.msg="";me.pw=false;renderMe();$("me").hidden=false;document.body.classList.add("noscroll");var x=$("me-card").querySelector(".x");if(x) x.focus();}
@@ -1430,6 +1431,28 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
     document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible") reg.update().catch(function(){});});
   }).catch(function(){});
 }
+/* Second safety net for updates: version.json on the server says which version is current.
+   If it is newer than this page, drop the saved copies and reload, so a new version shows up
+   every time the app is opened, without removing and re-adding it. Your data is not touched. */
+var APP_VERSION=6;
+function checkVersion(){
+  if(location.protocol==="file:"||!navigator.onLine) return;
+  fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
+    if(!j||!(j.v>APP_VERSION)) return;
+    var tried=0;try{tried=+sessionStorage.getItem("muraja-upd-"+j.v)||0;}catch(e){}
+    if(tried>=2) return;
+    try{sessionStorage.setItem("muraja-upd-"+j.v,String(tried+1));}catch(e){}
+    var a=document.activeElement;
+    if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){a.addEventListener("blur",checkVersion,{once:true});return;}
+    saveLocal();
+    var clear=window.caches?caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}):Promise.resolve();
+    var upd=navigator.serviceWorker?navigator.serviceWorker.getRegistration().then(function(r){return r&&r.update();}):Promise.resolve();
+    Promise.all([clear.catch(function(){}),upd.catch(function(){})]).then(function(){location.reload();});
+  }).catch(function(){});
+}
+checkVersion();
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible") checkVersion();});
+window.addEventListener("online",checkVersion);
 fetch("quran.txt").then(function(r){return r.ok?r.text():"";}).then(function(t){if(t&&parseTanzil(t)) renderQuiz();}).catch(function(){});
 </script>
 </body>

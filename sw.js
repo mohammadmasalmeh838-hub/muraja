@@ -2,7 +2,7 @@
 // The page itself: always fetched fresh when online (so updates show at once), saved copy when offline.
 // Icons and manifest: saved copy at once, refreshed in the background.
 // Fonts, Supabase library and Quran text from CDNs: saved once, then served from the cache.
-var V = "muraja-v5";
+var V = "muraja-v6";
 var SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(V).then(function (c) {
@@ -19,7 +19,7 @@ self.addEventListener("fetch", function (e) {
   if (req.method !== "GET") return;
   var url = new URL(req.url);
   if (url.origin === location.origin) {
-    if (url.pathname.endsWith("/quran.txt")) return;
+    if (url.pathname.endsWith("/quran.txt") || url.pathname.endsWith("/version.json")) return;
     var isPage = req.mode === "navigate" || /\/(index\.html)?$/.test(url.pathname);
     if (isPage) {
       e.respondWith(caches.open(V).then(function (c) {
