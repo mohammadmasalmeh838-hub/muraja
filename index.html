@@ -291,6 +291,27 @@ input,select,textarea{font-size:16px!important}
 .d-open .gr{font-size:11px;padding:1px 7px}
 .d-open .grades{gap:3px;flex-wrap:nowrap}
 .d-open .d-more .grow{min-width:0}
+/* Woche: day buttons in one row, sticky; chosen day shown below */
+.daystrip{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px 0;margin:-8px 0 0;background:var(--bg)}
+.dbtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 7px;border-radius:12px;border:1px solid var(--line);background:var(--surface);min-width:0}
+.db-n{font-family:var(--display);font-weight:700;font-size:15px;line-height:1.1}
+.db-d{font-size:11px;color:var(--muted)}
+.db-bar{width:60%;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:3px}
+.db-bar i{display:block;height:100%;background:var(--accent)}
+.dbtn.today{border-color:var(--gold)}
+.dbtn.free{opacity:.55}
+.dbtn.late .db-bar{background:var(--warn-soft)}
+.dbtn.sel{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.dbtn.sel .db-d{color:var(--surface);opacity:.85}
+.dbtn.sel .db-bar{background:rgba(255,255,255,.35)}
+.dbtn.sel .db-bar i{background:var(--surface)}
+.dayview{margin:0}
+.dd-h{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dd-date{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.dd-prog{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.dd-prog .bar{flex:1;min-width:120px;height:8px}
+.dd-all{margin:8px 0 10px}
+.dot-f{flex:none;width:8px;height:8px;border-radius:50%;background:var(--line);margin:7px 9px 0}
 </style>
 </head>
 <body>
@@ -314,8 +335,8 @@ input,select,textarea{font-size:16px!important}
       <h2 id="h-week">Diese Woche</h2>
       <p id="week-sum"></p>
     </div>
-    <div class="ribbon" id="ribbon" aria-hidden="true"></div>
-    <ul class="week" id="week"></ul>
+    <div class="daystrip" id="daystrip" role="group" aria-label="Tag wählen"></div>
+    <div class="dayview d-open" id="dayview" aria-live="polite"></div>
     <div class="sec-head"><h2 id="h-grades">Wie sitzen deine Suren?</h2></div>
     <div id="grades" class="grades-box" aria-labelledby="h-grades"></div>
     <div><button class="linkbtn" type="button" data-act="resetweek">Haken dieser Woche löschen</button></div>
@@ -1237,35 +1258,39 @@ function renderCalc(){
   if(a!==$("c-until")) $("c-until").value=c.until;
   if(a!==$("c-dpw")) $("c-dpw").value=String(c.dpw);
 }
+// Woche: a row of day buttons (stays at the top while scrolling) and the chosen day below it.
 function renderWeek(wp){
-  var t=todayIdx(),mon=monday(),rows="",segs="";
+  var t=todayIdx(),mon=monday(),strip="",sel=ui.day>=0&&ui.day<7?ui.day:t;
   for(var d=0;d<7;d++){
     var p=wp.days[d],dt=new Date(mon);dt.setDate(mon.getDate()+d);
-    var date=String(dt.getDate()).padStart(2,"0")+"."+String(dt.getMonth()+1).padStart(2,"0")+".";
-    var what,more="",isOpen=!!p&&ui.day===d,canTick=!!p&&d<=t,full=false;
-    if(p){
-      full=p.donePages>=p.pages-1e-6;
-      what=describe(p.atoms).map(function(x){return x.title;}).join(", ")+(d<t&&!full&&state.days[d]?'<span class="tag open">Rest verschoben</span>':"")+
-        '<small class="num">'+(d<=t?fmt0(p.donePages)+" von "+pagesWord(p.pages)+" gemacht":pagesWord(p.pages))+'</small>';
-      segs+='<div class="seg'+(full?" done":p.donePages>1e-6?" part":"")+(d===t?" now":"")+'" style="flex-grow:'+p.pages.toFixed(3)+'">'+DAYS[d]+'</div>';
-      var items=describe(p.atoms,true);
-      if(isOpen) more='<div class="d-open" data-act="noop"><div class="d-open-h"><span class="d-open-day">'+DAYS_LONG[d]+'</span>'+
-        '<span class="d-open-sum num">'+(items.length===1?"1 Sure":items.length+" Suren")+' · '+pagesWord(p.pages)+'</span></div>'+
-        (canTick?'<p class="d-open-tip">Tippe auf den Kreis, wenn du eine Sure wiederholt hast.</p>':'')+
-        '<ul class="d-more">'+items.map(function(x){
-        var st=itemState(x);
-        return '<li data-act="'+(canTick?"item":"noop")+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'">'+
-          (canTick?'<button class="tick sm'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>':'')+
-          '<span class="grow"><span class="s-t">'+x.title+'</span><small class="num">'+x.sub+'</small>'+(canTick?gradeRow(x,d):'')+'</span><span class="ar" lang="ar">'+x.ar+'</span></li>';
-      }).join("")+'</ul></div>';
-    }else what=state.days[d]?(d<t?"Nichts eingeplant":"Nichts mehr offen"):"Frei";
-    rows+='<li class="day'+(d===t?" now":"")+(isOpen?" open":"")+(p?" can-open":" off")+'"'+(p?' data-act="openday" data-d="'+d+'"':'')+'><div class="d-name">'+DAYS[d]+'<span class="d-date num">'+date+'</span></div>'+
-      (p?'<button class="d-what" type="button" aria-expanded="'+isOpen+'">'+what+'<small class="d-hint">'+(isOpen?"Liste schließen":canTick?"Einzelne Suren abhaken":"Suren anzeigen")+'</small></button>':'<div class="d-what">'+what+'</div>')+
-      (canTick?'<button class="tick" type="button" data-act="dayall" data-d="'+d+'" aria-pressed="'+full+'" aria-label="'+DAYS_LONG[d]+' ganz erledigt">✓</button>':'<span></span>')+more+'</li>';
+    var pct=p?Math.min(100,p.donePages/p.pages*100):0,full=!!p&&p.donePages>=p.pages-1e-6;
+    var cls="dbtn"+(d===sel?" sel":"")+(d===t?" today":"")+(!p?" free":"")+(full?" full":"")+(p&&d<t&&!full&&state.days[d]?" late":"");
+    strip+='<button type="button" class="'+cls+'" data-act="pickday" data-d="'+d+'" aria-pressed="'+(d===sel)+'" aria-label="'+DAYS_LONG[d]+'">'+
+      '<span class="db-n">'+DAYS[d]+'</span><span class="db-d num">'+dt.getDate()+'.</span>'+
+      '<span class="db-bar"><i style="width:'+pct.toFixed(0)+'%"></i></span></button>';
   }
-  $("week").innerHTML=rows;
-  $("ribbon").innerHTML=segs;
-  $("ribbon").style.display=segs?"":"none";
+  $("daystrip").innerHTML=strip;
+  var d2=sel,p2=wp.days[d2],dt2=new Date(mon);dt2.setDate(mon.getDate()+d2);
+  var date2=dt2.toLocaleDateString("de-DE",{day:"numeric",month:"long"}),canTick=!!p2&&d2<=t,h='';
+  h+='<div class="dd-h"><div><span class="d-open-day">'+DAYS_LONG[d2]+'</span><span class="dd-date">'+(d2===t?"Heute · ":"")+date2+'</span></div>';
+  if(p2){
+    var items=describe(p2.atoms,true),full2=p2.donePages>=p2.pages-1e-6;
+    h+='<span class="d-open-sum num">'+(items.length===1?"1 Sure":items.length+" Suren")+' · '+pagesWord(p2.pages)+'</span></div>';
+    h+='<div class="dd-prog"><div class="bar"><i style="width:'+Math.min(100,p2.donePages/p2.pages*100).toFixed(1)+'%"></i></div>'+
+      '<span class="num">'+(d2<=t?fmt0(p2.donePages)+" von "+pagesWord(p2.pages)+" gemacht":"kommt "+(d2===t+1?"morgen":"am "+DAYS_LONG[d2])+" dran")+'</span>'+
+      (d2<t&&!full2&&state.days[d2]?'<span class="tag open">Rest verschoben</span>':'')+'</div>';
+    if(canTick) h+='<p class="d-open-tip">Tippe auf den Kreis, wenn du eine Sure wiederholt hast.</p>';
+    h+='<ul class="d-more">'+items.map(function(x){
+      var st=itemState(x);
+      return '<li data-act="'+(canTick?"item":"noop")+'" data-d="'+d2+'" data-a="'+x.first+'" data-b="'+x.last+'">'+
+        (canTick?'<button class="tick sm'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>':'<span class="dot-f"></span>')+
+        '<span class="grow"><span class="s-t">'+x.title+'</span><small class="num">'+x.sub+'</small>'+(canTick?gradeRow(x,d2):'')+'</span><span class="ar" lang="ar">'+x.ar+'</span></li>';
+    }).join("")+'</ul>';
+    if(canTick) h+='<button class="btn-acc dd-all" type="button" data-act="dayall" data-d="'+d2+'">'+(full2?"Haken für "+DAYS_LONG[d2]+" wieder entfernen":"Ganzen "+DAYS_LONG[d2]+" abhaken")+'</button>';
+  }else{
+    h+='</div><p class="lead">'+(state.days[d2]?(d2<t?"An diesem Tag war nichts eingeplant.":"Für diesen Tag ist nichts mehr offen."):"Freier Tag. Unter „Plan“ kannst du ihn zu einem Wiederholungstag machen.")+'</p>';
+  }
+  $("dayview").innerHTML=h;
   $("week-sum").textContent=wp.total?fmt0(wp.done)+" von "+pagesWord(wp.total)+" geschafft":"";
 }
 function renderHistory(){
@@ -1355,7 +1380,9 @@ document.addEventListener("click",function(e){
     ids.forEach(function(i){if(allDone) delete state.rev[i]; else if(state.rev[i]===undefined) state.rev[i]=d;});
     commit();
   }
-  else if(act==="openday"){ui.day=ui.day===+b.dataset.d?-1:+b.dataset.d;render();}
+  else if(act==="openday"||act==="pickday"){ui.day=+b.dataset.d;render();
+    var dv=$("dayview"),st=$("daystrip"),y=dv.getBoundingClientRect().top-st.offsetHeight-8;
+    if(y<0) window.scrollBy(0,y);}
   else if(act==="hifz-set"){var c=hifzCalc(),h=state.hifz,n=+b.dataset.n;
     if(c.set&&c.logged===n){h.learned=c.learned-c.logged;h.today=0;h.day="";}
     else{h.learned=Math.min(c.total,c.learned-c.logged+n);h.today=n;h.day=c.t;}
@@ -1466,7 +1493,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
   ["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,stop,{passive:false});});
   document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1) e.preventDefault();},{passive:false});
 })();
-var APP_VERSION=9;
+var APP_VERSION=10;
 function checkVersion(){
   if(location.protocol==="file:"||!navigator.onLine) return;
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
