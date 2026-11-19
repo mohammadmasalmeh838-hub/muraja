@@ -61,7 +61,7 @@ h1,h2{font-family:var(--display);text-wrap:balance;margin:0}
 .top .date{color:var(--muted);font-size:14px}
 
 /* Today */
-.today{background:var(--hero-bg);color:var(--hero-ink);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px}
+section.today{background:var(--hero-bg);color:var(--hero-ink);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:18px}
 .today .eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--hero-muted);font-weight:600}
 .today h2{font-size:clamp(28px,7vw,40px);line-height:1.08;font-weight:700;letter-spacing:-.02em}
 .today .amount{color:var(--hero-muted);font-size:15px}
@@ -218,7 +218,7 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
 .foot{color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:16px}
 .foot p{margin:0;max-width:65ch}
 @media (max-width:420px){
-  .today{padding:20px 18px}
+  section.today{padding:20px 18px}
   .s-main{grid-template-columns:24px 26px 1fr auto;gap:8px}
   .pg{padding-left:12px}
 }
@@ -235,7 +235,7 @@ button.d-what{background:none;border:0;padding:0;text-align:left;width:100%}
 .view{display:none;flex-direction:column;gap:28px}
 .view.on{display:flex}
 .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);max-width:720px;margin:0 auto;
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);max-width:720px;margin:0 auto;
   background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
 @media (min-width:721px){.tabbar{border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0}}
@@ -312,6 +312,69 @@ input,select,textarea{font-size:16px!important}
 .dd-prog .bar{flex:1;min-width:120px;height:8px}
 .dd-all{margin:8px 0 10px}
 .dot-f{flex:none;width:8px;height:8px;border-radius:50%;background:var(--line);margin:7px 9px 0}
+/* Surah rows (Heute + Woche): big name, small details; rating opens on tap */
+.rlist{list-style:none;margin:0;padding:0}
+.rrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+.rrow:first-child{border-top:0}
+.rtick{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--muted);background:transparent;color:inherit;font-weight:700;font-size:13px;line-height:1;display:grid;place-items:center;padding:0}
+.rrow.done .rtick{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.rtick.part{border-color:var(--accent);color:var(--accent)}
+.rname{flex:1;min-width:0;display:flex;flex-direction:column}
+.rt{font-weight:700;font-size:18px;line-height:1.2}
+.rs{font-size:12px;color:var(--muted)}
+.rrow.done .rt{opacity:.75}
+.rrow .ar{font-size:19px;line-height:1.2;color:var(--muted);white-space:nowrap}
+.gpill{flex:none;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px}
+.gpill.g1{background:#2f9e74;color:#fff}.gpill.g2{background:#7fbf9f;color:#0f2a21}.gpill.g3{background:#d9a945;color:#2a1d05}.gpill.g4{background:#c8643a;color:#fff}
+.rpick{flex-basis:100%;margin:6px 0 2px 40px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);display:flex;flex-direction:column;gap:8px;cursor:default}
+.rq{font-size:14px;font-weight:600}
+.rq small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.rpick .grades{margin:0;gap:6px;flex-wrap:wrap}
+.rpick .gr{font-size:13px;padding:6px 10px;border-color:currentColor}
+.rpick .gr.g1{background:#2f9e74;border-color:#2f9e74;color:#fff}.rpick .gr.g2{background:#7fbf9f;border-color:#7fbf9f;color:#0f2a21}
+.rpick .gr.g3{background:#d9a945;border-color:#d9a945;color:#2a1d05}.rpick .gr.g4{background:#c8643a;border-color:#c8643a;color:#fff}
+/* Heute card: smaller headline, progress bar, list in hero colors */
+section.today{gap:12px;padding:20px}
+.t-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.today .t-head h2{font-size:22px;line-height:1.15;letter-spacing:-.01em}
+.t-sum{font-size:13px;color:var(--hero-muted);white-space:nowrap}
+.t-bar{height:6px;border-radius:3px;background:var(--hero-line);overflow:hidden}
+.t-bar i{display:block;height:100%;background:var(--gold);border-radius:3px}
+.t-tip{margin:0;font-size:13px;color:var(--hero-muted)}
+.today .rrow{border-color:var(--hero-line)}
+.today .rtick{border-color:var(--hero-muted)}
+.today .rrow.done .rtick{background:var(--gold);border-color:var(--gold);color:#1b1405}
+.today .rs,.today .rrow .ar{color:var(--hero-muted)}
+.today .rpick{background:rgba(255,255,255,.1)}
+.today .rq small{color:var(--hero-muted)}
+/* Stand: donut + legend, surah tiles, weekly bars */
+.gtop{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.donut{width:140px;height:140px;flex:none}
+.dseg.g1{stroke:#2f9e74}.dseg.g2{stroke:#7fbf9f}.dseg.g3{stroke:#d9a945}.dseg.g4{stroke:#c8643a}.dseg.g0{stroke:var(--line)}
+.d-big{font-family:var(--display);font-weight:700;font-size:30px;fill:var(--ink)}
+.d-small{font-size:11px;fill:var(--muted)}
+.dleg{list-style:none;margin:0;padding:0;flex:1;min-width:170px;display:flex;flex-direction:column;gap:6px}
+.dleg li{display:flex;align-items:center;gap:8px;font-size:14px}
+.dl-n{flex:1}
+.dl-v{font-weight:700}
+.dl-v small{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:5px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:6px 7px;border-radius:9px;border:0;text-align:left;min-width:0}
+.tile .tn{font-weight:700;font-size:12px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.tile .tg{font-size:10px;opacity:.85}
+.tile.g1{background:#2f9e74;color:#fff}.tile.g2{background:#7fbf9f;color:#0f2a21}.tile.g3{background:#d9a945;color:#2a1d05}.tile.g4{background:#c8643a;color:#fff}
+.tile.g0{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.tile.sel{outline:2px solid var(--ink);outline-offset:1px}
+.wbar{width:100%;height:auto;display:block}
+.wbar .grid{stroke:var(--line);stroke-width:1}
+.wbar .ax{font-size:10px;fill:var(--muted)}
+.wbar .axcur{fill:var(--ink);font-weight:700}
+.wbar .wb path{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1}
+.wbar .wb.cur path,.wbar .wb.sel path{fill:var(--accent);stroke:none}
+.wbar .wb{cursor:pointer}
+.wbar .zero{stroke:var(--line);stroke-width:2}
+.wbar .val{font-size:11px;font-weight:700;fill:var(--ink)}
+.wread{margin-top:4px}
 </style>
 </head>
 <body>
@@ -337,9 +400,18 @@ input,select,textarea{font-size:16px!important}
     </div>
     <div class="daystrip" id="daystrip" role="group" aria-label="Tag wählen"></div>
     <div class="dayview d-open" id="dayview" aria-live="polite"></div>
-    <div class="sec-head"><h2 id="h-grades">Wie sitzen deine Suren?</h2></div>
-    <div id="grades" class="grades-box" aria-labelledby="h-grades"></div>
     <div><button class="linkbtn" type="button" data-act="resetweek">Haken dieser Woche löschen</button></div>
+  </section>
+  </div>
+
+  <div class="view" data-tab="stand">
+  <section class="sec" aria-labelledby="h-grades">
+    <div class="sec-head"><h2 id="h-grades">Wie sitzen deine Suren?</h2></div>
+    <div id="grades" class="grades-box"></div>
+  </section>
+  <section class="sec" aria-labelledby="h-wchart">
+    <div class="sec-head"><h2 id="h-wchart">Wiederholt pro Woche</h2><p id="wchart-sum"></p></div>
+    <div id="wchart"></div>
   </section>
   <section class="sec" aria-labelledby="h-hist">
     <div class="sec-head"><h2 id="h-hist">Verlauf</h2></div>
@@ -419,6 +491,7 @@ input,select,textarea{font-size:16px!important}
     <button type="button" class="tab" data-act="tab" data-v="woche" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Woche</span></button>
     <button type="button" class="tab" data-act="tab" data-v="pruefen" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8v.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg><span>Prüfen</span></button>
     <button type="button" class="tab" data-act="tab" data-v="lernen" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.5c-2-1.4-4.8-1.8-8-1.3v13c3.2-.5 6 0 8 1.3 2-1.3 4.8-1.8 8-1.3v-13c-3.2-.5-6-.1-8 1.3zM12 6.5v13"/></svg><span>Lernen</span></button>
+    <button type="button" class="tab" data-act="tab" data-v="stand" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V12M10 20V6M15 20v-9M20 20V9M3.5 20h17"/></svg><span>Stand</span></button>
     <button type="button" class="tab" data-act="tab" data-v="plan" aria-current="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg><span>Plan</span></button>
   </nav>
 
@@ -614,7 +687,7 @@ state.rev={};
 function defaultPrefs(){return {name:"",theme:"auto",ar:"m",start:"last"};}
 state.prefs=defaultPrefs();
 state.log=[];
-var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false,tab:"heute"};
+var ui={open:-1,filter:"",day:-1,q:null,hint:false,show:false,tab:"heute",rate:null,gsort:"mushaf",gtile:-1,wsel:null};
 setAll(atomsWhere(function(t){return t.surah>=60;}),1); // start: As-Saff (61) bis An-Nas (114)
 
 function revRuns(){
@@ -651,7 +724,7 @@ function adopt(o){
   var h=o.hifz,dh=defaultHifz();
   state.hifz=h&&typeof h==="object"?{s:h.s>=0&&h.s<NS?h.s|0:dh.s,pages:h.pages>0?+h.pages:dh.pages,until:typeof h.until==="string"?h.until:dh.until,learned:+h.learned||0,day:typeof h.day==="string"?h.day:"",today:+h.today||0}:dh;
   var pr=o.prefs,dp=defaultPrefs();
-  state.prefs=pr&&typeof pr==="object"?{name:typeof pr.name==="string"?pr.name.slice(0,30):"",theme:/^(auto|light|dark)$/.test(pr.theme)?pr.theme:dp.theme,ar:/^(m|l|xl)$/.test(pr.ar)?pr.ar:dp.ar,start:/^(last|heute|pruefen|lernen)$/.test(pr.start)?pr.start:dp.start}:(state.prefs||dp);
+  state.prefs=pr&&typeof pr==="object"?{name:typeof pr.name==="string"?pr.name.slice(0,30):"",theme:/^(auto|light|dark)$/.test(pr.theme)?pr.theme:dp.theme,ar:/^(m|l|xl)$/.test(pr.ar)?pr.ar:dp.ar,start:/^(last|heute|pruefen|lernen|stand)$/.test(pr.start)?pr.start:dp.start}:(state.prefs||dp);
   state.log=normLog(o.log);
   rollWeek();
   return true;
@@ -840,7 +913,7 @@ document.addEventListener("submit",function(e){
 });
 
 /* ---- tabs ---- */
-var TABS=["heute","woche","pruefen","lernen","plan"];
+var TABS=["heute","woche","pruefen","lernen","stand","plan"];
 function showTab(k,noScroll){
   if(TABS.indexOf(k)<0) k="heute";
   ui.tab=k;
@@ -877,7 +950,7 @@ function renderMe(){
   h+='<div class="me-sec"><h3>Arabische Schrift</h3>'+chipRow("pref-ar",p.ar,[["m","Normal"],["l","Groß"],["xl","Sehr groß"]])+
     '<p class="ar me-sample" lang="ar">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p></div>';
   h+='<div class="me-sec"><h3>Abfrage</h3><p class="muted-p">Was beim Prüfen drankommt.</p>'+chipRow("pref-scope",state.quiz.scope==="all"?"all":"today",[["today","Nur heutige Portion"],["all","Alles, was ich kann"]])+'</div>';
-  h+='<div class="me-sec"><h3>Startbereich</h3><p class="muted-p">Welcher Bereich beim Öffnen der App kommt.</p>'+chipRow("pref-start",p.start,[["last","Zuletzt offen"],["heute","Heute"],["pruefen","Prüfen"],["lernen","Lernen"]])+'</div>';
+  h+='<div class="me-sec"><h3>Startbereich</h3><p class="muted-p">Welcher Bereich beim Öffnen der App kommt.</p>'+chipRow("pref-start",p.start,[["last","Zuletzt offen"],["heute","Heute"],["pruefen","Prüfen"],["lernen","Lernen"],["stand","Stand"]])+'</div>';
   if(sbUser){
     h+='<div class="me-sec"><h3>Konto</h3><p class="muted-p">Dein Plan ist auf allen Geräten gleich, auf denen du mit dieser E-Mail angemeldet bist.</p>';
     if(me.pw) h+='<form class="pw-form fields"><label>Neues Passwort (mind. 6 Zeichen)<input name="newpw" type="password" minlength="6" autocomplete="new-password" required></label>'+
@@ -947,25 +1020,91 @@ function gradeRow(x,d){
   for(var g=1;g<=4;g++) h+='<button class="gr g'+g+'" type="button" data-act="grade" data-s="'+s+'" data-g="'+g+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'" aria-pressed="'+(cur===g)+'">'+GRADES[g]+'</button>';
   return h+'</span>';
 }
-function renderGrades(){
-  var mem=allPool(),by={1:[],2:[],3:[],4:[]},none=0;
-  mem.forEach(function(s){var v=state.grade[s];if(v) by[v.g].push(s); else none++;});
-  var h='';
-  if(mem.length){
-    h+='<div class="gbar" role="img" aria-label="Bewertung deiner Suren">';
-    for(var g=1;g<=4;g++) if(by[g].length) h+='<i class="g'+g+'" style="flex-grow:'+by[g].length+'"></i>';
-    if(none) h+='<i class="g0" style="flex-grow:'+none+'"></i>';
-    h+='</div><p class="gsum num">';
-    var parts=[];for(var g2=1;g2<=4;g2++) parts.push('<span class="dot g'+g2+'"></span>'+GRADES[g2]+' '+by[g2].length);
-    parts.push('<span class="dot g0"></span>Noch nicht bewertet '+none);
-    h+=parts.join(" &nbsp; ")+'</p>';
-    [4,3].forEach(function(g){
-      if(by[g].length) h+='<p class="glist"><strong>'+GRADES[g]+':</strong> '+by[g].map(function(s){return SURAHS[s][1];}).join(", ")+'</p>';
-    });
-    if(!by[3].length&&!by[4].length) h+='<p class="glist">Noch keine schwachen Suren. Bewerte beim Abhaken, wie es lief.</p>';
-    else h+='<p class="glist">Schwache und mittlere Suren kommen in der Abfrage öfter dran.</p>';
+// One surah row. Tapping it opens "Wie lief es?"; it is ticked only once a rating is chosen.
+function rateRow(x,d,canTick){
+  var st=itemState(x),s=atoms[x.first].surah,key=d+":"+x.first,open=canTick&&ui.rate===key&&st!=="full",gv=state.grade[s];
+  var h='<li class="rrow'+(st==="full"?" done":"")+(open?" open":"")+'" data-act="'+(canTick?"item":"noop")+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'">';
+  h+=canTick?'<button class="rtick'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+(st==="full"?" wieder öffnen":" abhaken")+'">'+mark(st)+'</button>':'<span class="dot-f"></span>';
+  h+='<span class="rname"><span class="rt">'+x.title+'</span><span class="rs num">'+x.sub+'</span></span>';
+  if(st==="full"&&gv) h+='<span class="gpill g'+gv.g+'">'+GRADES[gv.g]+'</span>';
+  if(x.ar) h+='<span class="ar" lang="ar">'+x.ar+'</span>';
+  if(open){
+    h+='<div class="rpick" data-act="noop"><span class="rq">Wie lief '+x.title+'? <small>Erst nach deiner Wahl wird sie abgehakt.</small></span><span class="grades">';
+    for(var g=1;g<=4;g++) h+='<button class="gr g'+g+'" type="button" data-act="grade" data-pick="1" data-s="'+s+'" data-g="'+g+'" data-d="'+d+'" data-a="'+x.first+'" data-b="'+x.last+'" aria-pressed="false">'+GRADES[g]+'</button>';
+    h+='</span></div>';
   }
-  $("grades").innerHTML=h;
+  return h+'</li>';
+}
+function gradeCounts(){
+  var mem=allPool(),by={1:[],2:[],3:[],4:[]},none=[];
+  mem.forEach(function(s){var v=state.grade[s];if(v) by[v.g].push(s); else none.push(s);});
+  return {mem:mem,by:by,none:none};
+}
+// Donut of the four ratings (plus not rated), legend with counts, and one tile per surah.
+function renderGrades(){
+  var c=gradeCounts(),n=c.mem.length,el=$("grades");
+  if(!n){el.innerHTML='<p class="lead">Sobald du unter „Plan“ Suren auswählst und sie beim Wiederholen bewertest, siehst du hier, wie sie sitzen.</p>';return;}
+  var segs=[[1,c.by[1].length],[2,c.by[2].length],[3,c.by[3].length],[4,c.by[4].length],[0,c.none.length]].filter(function(x){return x[1]>0;});
+  var R=52,C=2*Math.PI*R,gap=segs.length>1?3:0,off=0,svg='<svg class="donut" viewBox="0 0 140 140" role="img" aria-label="Bewertung deiner '+n+' Suren">';
+  svg+='<circle cx="70" cy="70" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="18" opacity=".35"/>';
+  segs.forEach(function(x){
+    var len=x[1]/n*C,dl=Math.max(0,len-gap);
+    svg+='<circle class="dseg g'+x[0]+'" cx="70" cy="70" r="'+R+'" fill="none" stroke-width="18" stroke-dasharray="'+dl.toFixed(2)+' '+(C-dl).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 70 70)"><title>'+(x[0]?GRADES[x[0]]:"Noch nicht bewertet")+': '+x[1]+'</title></circle>';
+    off+=len;
+  });
+  var rated=n-c.none.length;
+  svg+='<text x="70" y="66" text-anchor="middle" class="d-big">'+rated+'</text><text x="70" y="86" text-anchor="middle" class="d-small">von '+n+' bewertet</text></svg>';
+  var leg='<ul class="dleg">';
+  [1,2,3,4,0].forEach(function(g){
+    var k=g?c.by[g].length:c.none.length;
+    leg+='<li><span class="dot g'+g+'"></span><span class="dl-n">'+(g?GRADES[g]:"Noch nicht bewertet")+'</span><span class="dl-v num">'+k+'<small>'+Math.round(k/n*100)+' %</small></span></li>';
+  });
+  leg+='</ul>';
+  var order=c.mem.slice();
+  if(ui.gsort==="weak") order.sort(function(a,b){var ga=state.grade[a]?state.grade[a].g:0,gb=state.grade[b]?state.grade[b].g:0;return (gb||2.5)-(ga||2.5)||a-b;});
+  var tiles='<div class="chips gsort">'+[["mushaf","Nach Mushaf"],["weak","Schwächste zuerst"]].map(function(o){return '<button type="button" class="chip" data-act="gsort" data-v="'+o[0]+'" aria-pressed="'+((ui.gsort||"mushaf")===o[0])+'">'+o[1]+'</button>';}).join("")+'</div><div class="tiles">';
+  var hidden=0;
+  if(!ui.gall){var rest=order.filter(function(s){return !state.grade[s];});hidden=rest.length;order=order.filter(function(s){return state.grade[s];});}
+  order.forEach(function(s){
+    var v=state.grade[s],g=v?v.g:0;
+    tiles+='<button type="button" class="tile g'+g+(ui.gtile===s?" sel":"")+'" data-act="gtile" data-s="'+s+'" aria-label="'+SURAHS[s][1]+': '+(g?GRADES[g]:"noch nicht bewertet")+'"><span class="tn">'+SURAHS[s][1]+'</span><span class="tg">'+(g?GRADES[g]:"–")+'</span></button>';
+  });
+  tiles+='</div>';
+  if(hidden||ui.gall) tiles+='<div><button class="linkbtn" type="button" data-act="gall">'+(ui.gall?"Nur bewertete Suren zeigen":(order.length?"Auch die "+hidden+" noch nicht bewerteten Suren zeigen":"Alle "+hidden+" Suren zeigen"))+'</button></div>';
+  var info='';
+  if(ui.gtile>=0&&c.mem.indexOf(ui.gtile)>=0){
+    var v2=state.grade[ui.gtile];
+    info='<p class="hint"><strong>'+SURAHS[ui.gtile][1]+'</strong> · '+(v2?GRADES[v2.g]+", bewertet am "+new Date(v2.d+"T12:00:00").toLocaleDateString("de-DE",{day:"numeric",month:"numeric"}):"noch nicht bewertet")+'</p>';
+  }
+  el.innerHTML='<div class="gtop">'+svg+leg+'</div>'+tiles+info+
+    '<p class="lead">'+(c.by[3].length||c.by[4].length?"Mittlere und schwache Suren kommen beim Prüfen öfter dran.":"Bewerte beim Abhaken, wie es lief. Dann siehst du hier, wo du nacharbeiten solltest.")+'</p>';
+}
+// Pages revised per week, the last 8 weeks (missing weeks count as 0).
+function renderWeekChart(){
+  var cur=weekId(),pages={};
+  (state.log||[]).forEach(function(x){var l=Object.keys(runsToMap(x.rev)).map(Number).filter(function(i){return i<atoms.length;});pages[x.w]=lenOf(l);});
+  pages[cur]=lenOf(Object.keys(state.rev).map(Number));
+  var weeks=[],m=new Date(cur+"T12:00:00");
+  for(var k=7;k>=0;k--){var d=new Date(m);d.setDate(m.getDate()-7*k);var id=iso(d);weeks.push({w:id,d:d,v:pages[id]||0,cur:id===cur});}
+  var max=Math.max(1,Math.max.apply(null,weeks.map(function(x){return x.v;})));
+  var step=max>40?20:max>20?10:max>8?5:2,top=Math.ceil(max/step)*step;
+  var W=320,H=170,L=28,B=24,T=16,bw=(W-L-8)/8,svg='<svg class="wbar" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Wiederholte Seiten pro Woche, letzte 8 Wochen">';
+  for(var y=0;y<=top;y+=step){var yy=H-B-(y/top)*(H-B-T);svg+='<line x1="'+L+'" x2="'+(W-4)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'" class="grid"/><text x="'+(L-6)+'" y="'+(yy+4).toFixed(1)+'" text-anchor="end" class="ax">'+y+'</text>';}
+  weeks.forEach(function(x,i){
+    var h=(x.v/top)*(H-B-T),bx=L+i*bw+bw*0.18,w=bw*0.64,by=H-B-h,r=Math.min(4,h/2,w/2);
+    var path=h>0?'M'+bx+' '+(H-B)+'V'+(by+r)+'Q'+bx+' '+by+' '+(bx+r)+' '+by+'H'+(bx+w-r)+'Q'+(bx+w)+' '+by+' '+(bx+w)+' '+(by+r)+'V'+(H-B)+'Z':'';
+    var lab=String(x.d.getDate()).padStart(2,"0")+"."+String(x.d.getMonth()+1).padStart(2,"0")+".";
+    svg+='<g class="wb'+(x.cur?" cur":"")+(ui.wsel===x.w?" sel":"")+'" data-act="wsel" data-v="'+x.w+'"><rect x="'+(L+i*bw)+'" y="'+T+'" width="'+bw+'" height="'+(H-B-T+B)+'" fill="transparent"/>'+
+      (path?'<path d="'+path+'"/>':'<line x1="'+bx+'" x2="'+(bx+w)+'" y1="'+(H-B)+'" y2="'+(H-B)+'" class="zero"/>')+
+      '<text x="'+(L+i*bw+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" class="ax'+(x.cur?" axcur":"")+'">'+(x.cur?"Diese":lab)+'</text>'+
+      ((x.cur||ui.wsel===x.w)&&x.v>0?'<text x="'+(bx+w/2)+'" y="'+(by-5)+'" text-anchor="middle" class="val">'+fmt(x.v)+'</text>':'')+
+      '<title>Woche ab '+lab+': '+pagesWord(x.v)+'</title></g>';
+  });
+  svg+='</svg>';
+  var selW=weeks.filter(function(x){return x.w===ui.wsel;})[0];
+  var total=weeks.reduce(function(a,x){return a+x.v;},0);
+  var avg=total/8;$("wchart-sum").textContent=avg<1?"Ø weniger als 1 Seite pro Woche":"Ø "+pagesWord(avg)+" pro Woche";
+  $("wchart").innerHTML=svg+'<p class="lead num wread">'+(selW?"Woche ab "+selW.d.toLocaleDateString("de-DE",{day:"numeric",month:"long"})+": "+pagesWord(selW.v):"Tippe auf einen Balken für die genaue Zahl.")+'</p>';
 }
 function renderToday(plan,wp){
   var t=todayIdx(),p=wp.days[t],el=$("today"),h='<div class="eyebrow">Heute · '+DAYS_LONG[t]+'</div>';
@@ -979,13 +1118,11 @@ function renderToday(plan,wp){
   }else if(!p){
     h+='<h2>Heute ist frei</h2><div class="amount">Für heute steht nichts im Plan.</div>';
   }else{
-    h+='<h2>'+(done?"Für heute erledigt":(p.donePages>1e-6?"Heute noch ":"")+pagesWord(left)+" wiederholen")+'</h2>';
-    h+='<ul class="portion">'+describe(p.atoms,true).map(function(x){
-      var st=itemState(x);
-      return '<li data-act="item" data-d="'+t+'" data-a="'+x.first+'" data-b="'+x.last+'"><button class="itick'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>'+
-        '<span class="p-name">'+x.title+'<span class="p-sub">'+x.sub+'</span>'+gradeRow(x,t)+'</span>'+(x.ar?'<span class="ar" lang="ar">'+x.ar+'</span>':'')+'</li>';
-    }).join("")+'</ul>';
-    if(!done) h+='<button class="btn-main" type="button" data-act="dayall" data-d="'+t+'">Alles von heute erledigt</button>';
+    var its=describe(p.atoms,true);
+    h+='<div class="t-head"><h2>'+(done?"Für heute erledigt":(p.donePages>1e-6?"Noch ":"")+pagesWord(left)+(p.donePages>1e-6?"":" wiederholen"))+'</h2><span class="t-sum num">'+its.filter(function(x){return itemState(x)==="full";}).length+' / '+its.length+' Suren</span></div>';
+    h+='<div class="t-bar"><i style="width:'+Math.min(100,p.donePages/p.pages*100).toFixed(1)+'%"></i></div>';
+    if(!done) h+='<p class="t-tip">Tippe auf eine Sure und wähle, wie es lief. Dann wird sie abgehakt.</p>';
+    h+='<ul class="rlist">'+its.map(function(x){return rateRow(x,t,true);}).join("")+'</ul>';
   }
   if(open.length) h+='<div class="note">Von '+open.join(", ")+' ist noch etwas offen. Der Rest ist schon auf heute und die nächsten Tage verteilt. Hast du an dem Tag doch etwas gemacht, hake es im Bereich „Woche“ an.</div>';
   el.innerHTML=h;
@@ -1279,14 +1416,8 @@ function renderWeek(wp){
     h+='<div class="dd-prog"><div class="bar"><i style="width:'+Math.min(100,p2.donePages/p2.pages*100).toFixed(1)+'%"></i></div>'+
       '<span class="num">'+(d2<=t?fmt0(p2.donePages)+" von "+pagesWord(p2.pages)+" gemacht":"kommt "+(d2===t+1?"morgen":"am "+DAYS_LONG[d2])+" dran")+'</span>'+
       (d2<t&&!full2&&state.days[d2]?'<span class="tag open">Rest verschoben</span>':'')+'</div>';
-    if(canTick) h+='<p class="d-open-tip">Tippe auf den Kreis, wenn du eine Sure wiederholt hast.</p>';
-    h+='<ul class="d-more">'+items.map(function(x){
-      var st=itemState(x);
-      return '<li data-act="'+(canTick?"item":"noop")+'" data-d="'+d2+'" data-a="'+x.first+'" data-b="'+x.last+'">'+
-        (canTick?'<button class="tick sm'+(st==="part"?" part":"")+'" type="button" aria-pressed="'+(st==="full")+'" aria-label="'+x.title+' erledigt">'+mark(st)+'</button>':'<span class="dot-f"></span>')+
-        '<span class="grow"><span class="s-t">'+x.title+'</span><small class="num">'+x.sub+'</small>'+(canTick?gradeRow(x,d2):'')+'</span><span class="ar" lang="ar">'+x.ar+'</span></li>';
-    }).join("")+'</ul>';
-    if(canTick) h+='<button class="btn-acc dd-all" type="button" data-act="dayall" data-d="'+d2+'">'+(full2?"Haken für "+DAYS_LONG[d2]+" wieder entfernen":"Ganzen "+DAYS_LONG[d2]+" abhaken")+'</button>';
+    if(canTick) h+='<p class="d-open-tip">Tippe auf eine Sure und wähle, wie es lief. Dann wird sie abgehakt.</p>';
+    h+='<ul class="rlist">'+items.map(function(x){return rateRow(x,d2,canTick);}).join("")+'</ul>';
   }else{
     h+='</div><p class="lead">'+(state.days[d2]?(d2<t?"An diesem Tag war nichts eingeplant.":"Für diesen Tag ist nichts mehr offen."):"Freier Tag. Unter „Plan“ kannst du ihn zu einem Wiederholungstag machen.")+'</p>';
   }
@@ -1356,7 +1487,7 @@ function renderSurahs(){
 function render(){
   var plan=buildPlan(state.days);
   renderHello();applyPrefs();renderMeBtn();
-  var wp=nowPlan();renderToday(plan,wp);renderHifz();renderWeek(wp);renderGrades();renderHistory();renderQuiz();renderCalc();renderDays();renderSelection(plan);
+  var wp=nowPlan();renderToday(plan,wp);renderHifz();renderWeek(wp);renderGrades();renderWeekChart();renderHistory();renderQuiz();renderCalc();renderDays();renderSelection(plan);
 }
 
 document.addEventListener("click",function(e){
@@ -1365,6 +1496,11 @@ document.addEventListener("click",function(e){
   if(act==="noop") return;
   if(act==="grade"){
     var gs=+b.dataset.s,gg=+b.dataset.g,gd=+b.dataset.d;
+    if(b.dataset.pick){
+      state.grade[gs]={g:gg,d:iso(new Date())};
+      for(var gj=+b.dataset.a;gj<=+b.dataset.b;gj++) if(state.rev[gj]===undefined) state.rev[gj]=gd;
+      ui.rate=null;commit();return;
+    }
     if(state.grade[gs]&&state.grade[gs].g===gg) delete state.grade[gs];
     else{
       state.grade[gs]={g:gg,d:iso(new Date())};
@@ -1372,7 +1508,17 @@ document.addEventListener("click",function(e){
     }
     commit();return;
   }
-  if(act==="item"||act==="dayall"){
+  if(act==="item"){
+    var rd=+b.dataset.d,ra=+b.dataset.a,rb=+b.dataset.b,rids=[];
+    for(var ri=ra;ri<=rb;ri++) rids.push(ri);
+    if(rids.every(function(i){return state.rev[i]!==undefined;})){rids.forEach(function(i){delete state.rev[i];});ui.rate=null;commit();return;}
+    var rk=rd+":"+ra;ui.rate=ui.rate===rk?null:rk;render();return;
+  }
+  if(act==="gall"){ui.gall=!ui.gall;renderGrades();return;}
+  if(act==="gsort"){ui.gsort=b.dataset.v;renderGrades();return;}
+  if(act==="gtile"){var ts=+b.dataset.s;ui.gtile=ui.gtile===ts?-1:ts;renderGrades();return;}
+  if(act==="wsel"){ui.wsel=ui.wsel===b.dataset.v?null:b.dataset.v;renderWeekChart();return;}
+  if(act==="dayall"){
     var d=+b.dataset.d,ids=[];
     if(act==="item"){for(var i=+b.dataset.a;i<=+b.dataset.b;i++) ids.push(i);}
     else{var dp=nowPlan().days[d];ids=dp?dp.atoms:[];}
@@ -1493,7 +1639,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
   ["gesturestart","gesturechange","gestureend"].forEach(function(t){document.addEventListener(t,stop,{passive:false});});
   document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1) e.preventDefault();},{passive:false});
 })();
-var APP_VERSION=10;
+var APP_VERSION=11;
 function checkVersion(){
   if(location.protocol==="file:"||!navigator.onLine) return;
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
