@@ -1,9 +1,13 @@
-// Keeps the app working offline. Own files: show the saved copy at once and refresh it
-// in the background. Fonts and Quran text from the CDN: saved once, then served from the cache.
-var V = "muraja-v3";
+// Keeps the app working offline.
+// The page itself: always fetched fresh when online (so updates show at once), saved copy when offline.
+// Icons and manifest: saved copy at once, refreshed in the background.
+// Fonts, Supabase library and Quran text from CDNs: saved once, then served from the cache.
+var V = "muraja-v4";
 var SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", function (e) {
-  e.waitUntil(caches.open(V).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
+  e.waitUntil(caches.open(V).then(function (c) {
+    return c.addAll(SHELL.map(function (u) { return new Request(u, { cache: "reload" }); }));
+  }).then(function () { return self.skipWaiting(); }));
 });
 self.addEventListener("activate", function (e) {
   e.waitUntil(caches.keys().then(function (ks) {
@@ -16,11 +20,23 @@ self.addEventListener("fetch", function (e) {
   var url = new URL(req.url);
   if (url.origin === location.origin) {
     if (url.pathname.endsWith("/quran.txt")) return;
+    var isPage = req.mode === "navigate" || /\/(index\.html)?$/.test(url.pathname);
+    if (isPage) {
+      e.respondWith(caches.open(V).then(function (c) {
+        return fetch(req, { cache: "no-cache" }).then(function (res) {
+          if (res.ok) c.put("index.html", res.clone());
+          return res;
+        }).catch(function () {
+          return c.match("index.html").then(function (hit) { return hit || c.match("./"); });
+        });
+      }));
+      return;
+    }
     e.respondWith(caches.open(V).then(function (c) {
       return c.match(req, { ignoreSearch: true }).then(function (hit) {
-        var net = fetch(req).then(function (res) { if (res.ok) c.put(req, res.clone()); return res; });
+        var net = fetch(req, { cache: "no-cache" }).then(function (res) { if (res.ok) c.put(req, res.clone()); return res; });
         if (hit) { net.catch(function () {}); return hit; }
-        return net.catch(function () { return c.match("index.html"); });
+        return net;
       });
     }));
     return;
