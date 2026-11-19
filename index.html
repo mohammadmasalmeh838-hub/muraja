@@ -1434,7 +1434,7 @@ if("serviceWorker" in navigator&&location.protocol!=="file:"){
 /* Second safety net for updates: version.json on the server says which version is current.
    If it is newer than this page, drop the saved copies and reload, so a new version shows up
    every time the app is opened, without removing and re-adding it. Your data is not touched. */
-var APP_VERSION=6;
+var APP_VERSION=7;
 function checkVersion(){
   if(location.protocol==="file:"||!navigator.onLine) return;
   fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():null;}).then(function(j){
